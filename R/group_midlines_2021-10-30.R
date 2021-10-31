@@ -51,7 +51,7 @@ group_lines_a = function(x){
 }
 
 
-
+#' @export
 group_lines = function(x) {
 
 grouped_linestring = sf::st_as_sf(sf::st_cast(sf::st_line_merge(sf::st_union(x)), "LINESTRING"))
@@ -94,6 +94,8 @@ return(grouped_multilinestring)
 #tolerance = set_units(1,"m")
 #x = live_deadends
 ###
+
+#' @export
 process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distance = units::set_units(1,"m")){
 
   #moving this within this cleaning function

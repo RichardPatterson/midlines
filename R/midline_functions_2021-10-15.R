@@ -11,6 +11,7 @@
 #max_dist = max_distance_between_pts
 #near_buffer_dist = near_buffer_distance
 
+#' @export
 midlines_draw = function(dat, max_dist, near_lanes_dist, near_buffer_dist){
 
   # make linestring and ensure sufficient point density for voronoi
@@ -41,7 +42,7 @@ midlines_draw = function(dat, max_dist, near_lanes_dist, near_buffer_dist){
 # boarder_distance = set_units(1,"m")
 # i=1
 
-
+#' @export
 deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = units::set_units(1,"m")){
 
   if(!(is.null(boarder_line))) {

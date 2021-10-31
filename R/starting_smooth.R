@@ -1,4 +1,4 @@
-
+#' @export
 smooth = function(dat, width = 3){
 
   s = function(x){

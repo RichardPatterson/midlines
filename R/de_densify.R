@@ -1,5 +1,5 @@
 
-
+#' @export
 de_densify = function(x, density = units::set_units(20,"m")){
 
   ls = sf::st_cast(x,"LINESTRING")
