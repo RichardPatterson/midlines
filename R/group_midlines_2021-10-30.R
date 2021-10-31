@@ -16,7 +16,7 @@ group_lines_a = function(x){
   #setorder(lines, group_id, line_id)
   lines$n_ = 1:nrow(lines)
 
-  inter = st_intersects(lines$geometry, lines$geometry)
+  inter = sf::st_intersects(lines$geometry, lines$geometry)
   group_index = 1
 
 
@@ -25,7 +25,7 @@ group_lines_a = function(x){
     lines$group_id[lines$n_ %in%
                                inter[[lines$n_[l]]]] = group_index
 
-    data.table::setorder(lines, group_id, na.last = TRUE)
+    lines = lines[order(lines$group_id, na.last = TRUE),]
 
     if(anyNA(lines$group_id[l+1])) group_index = group_index +1
     #print(group_index)
@@ -33,9 +33,10 @@ group_lines_a = function(x){
   }
 
   multilines = lines %>%
-    dplyr::group_by(group_id) %>%
+    dplyr::group_by(lines$group_id) %>%
     dplyr::summarise(do_union = FALSE) %>%
     sf::st_cast("MULTILINESTRING")
+  colnames(multilines) = c("group_id", "geometry")
 
   #multilines$n_lines = lengths(multilines$geometry)
   multilines$n_lines =lengths(lapply(multilines$geometry, unlist))/4
@@ -93,7 +94,7 @@ return(grouped_multilinestring)
 #tolerance = set_units(1,"m")
 #x = live_deadends
 ###
-process_lines = function(x, n_lines, length, tolerance){
+process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distance = units::set_units(1,"m")){
 
   #moving this within this cleaning function
   x_multilines = group_lines(x[[1]])
@@ -106,8 +107,12 @@ process_lines = function(x, n_lines, length, tolerance){
   add_back_groups2 = x_multilines$group_id[x_multilines$length>length]
 
   #the first line finds lines touching boarder and then those removed groups that hit these
-  jj = live_deadends[[2]][sf::st_is_within_distance(live_deadends[[2]], bbox_as_line, dist = tolerance, sparse = FALSE),]
+  if(!(is.null(boarder_line))) {
+  jj = x[[2]][sf::st_is_within_distance(x[[2]], boarder_line, dist = boarder_distance, sparse = FALSE),]
   add_back_groups3 = x_multilines$group_id[sf::st_intersects(x_multilines, sf::st_union(jj), sparse = FALSE)]
+  } else {
+    add_back_groups3 = NULL
+  }
 
   add_back_groups = unique(c(add_back_groups1, add_back_groups2, add_back_groups3))
 

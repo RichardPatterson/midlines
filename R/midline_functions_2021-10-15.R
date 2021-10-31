@@ -35,11 +35,11 @@ midlines_draw = function(dat, max_dist, near_lanes_dist, near_buffer_dist){
 
 
 
-#dat = midlines_all
-#n_removed=10
-#boarder_line = bbox_as_line
-#boarder_distance = set_units(1,"m")
-
+# dat = midlines_all
+# n_removed=10
+# boarder_line = bbox_as_line
+# boarder_distance = set_units(1,"m")
+# i=1
 
 
 deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = units::set_units(1,"m")){
@@ -58,10 +58,7 @@ deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = u
   for(i in 1:n_removed) {
     if (i == 1) trimmed_mid_points = mid_points
 
-    trimmed_mid_points$dead_point = !(
-      duplicated(trimmed_mid_points$geometry) |
-        duplicated(trimmed_mid_points$geometry, fromLast = TRUE)
-    )
+    trimmed_mid_points$dead_point = lengths(sf::st_intersects(trimmed_mid_points))==1
     #table(trimmed_mid_points$dead_point)
 
     if(!(is.null(boarder_line))) {
@@ -69,29 +66,33 @@ deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = u
     }
 
 
-    trimmed_mid_points = trimmed_mid_points %>%
-      dplyr::group_by(line_id) %>%
-      dplyr::mutate(dead_line = sum(dead_point, na.rm = TRUE))
+    ls =trimmed_mid_points$line_id[trimmed_mid_points$dead_point]
+    trimmed_mid_points$dead_line = trimmed_mid_points$line_id %in% ls
+
 
     trimmed_mid_points$cycle = i
 
-    new_removed_mid_points = dplyr::filter(trimmed_mid_points, dead_line == 1)
+    new_removed_mid_points =trimmed_mid_points[trimmed_mid_points$dead_line == TRUE,]
     removed_mid_points = rbind(removed_mid_points, new_removed_mid_points)
 
-    trimmed_mid_points = dplyr::filter(trimmed_mid_points, dead_line == 0)
+    trimmed_mid_points =trimmed_mid_points[trimmed_mid_points$dead_line == FALSE,]
+
 
   }#for loop
 
 
-  removed_lines = removed_mid_points %>%
-    dplyr::group_by(line_id) %>%
-    dplyr::summarise(do_union = FALSE) %>%
-    sf::st_cast("LINESTRING")
+    removed_lines = removed_mid_points %>%
+        dplyr::group_by(removed_mid_points$line_id) %>%
+        dplyr::summarise(do_union = FALSE) %>%
+        sf::st_cast("LINESTRING")
+    colnames(removed_lines) = c("line_id", "geometry")
 
-  trimmed_lines = trimmed_mid_points %>%
-    dplyr::group_by(line_id) %>%
-    dplyr::summarise(do_union = FALSE) %>%
-    sf::st_cast("LINESTRING")
+
+    trimmed_lines = trimmed_mid_points %>%
+        dplyr::group_by(trimmed_mid_points$line_id) %>%
+        dplyr::summarise(do_union = FALSE) %>%
+        sf::st_cast("LINESTRING")
+    colnames(trimmed_lines) = c("line_id", "geometry")
 
   return = list(removed_lines,trimmed_lines)
 
@@ -121,57 +122,57 @@ deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = u
 
 
 
-
-
-# 3 grouping deadends - this has been supercedes by functions in group_midlines_new.R
-
-group_deadends = function(dat, line_id = line_id){
-  #l=1
-  removed_lines_2 = dat
-
-  group_index = 1
-  removed_lines_2$group_id = NA
-  #removed_lines_2 = removed_lines_2 %>% arrange(group_id, line_id)
-  data.table::setorder(removed_lines_2, group_id, line_id)
-
-  removed_lines_2$inter = sf::st_intersects(removed_lines_2$geometry, removed_lines_2$geometry)
-
-  removed_lines_2$n_ = 1:nrow(removed_lines_2)
-
-  for(l in 1:nrow(removed_lines_2)) {
-    #print(l)
-    #t = unlist(st_intersects(removed_lines$geometry[l], removed_lines$geometry))
-    #print(t)
-    removed_lines_2$group_id[removed_lines_2$n_ %in% removed_lines_2$inter[[l]]] = group_index
-
-    #removed_lines_2 = removed_lines_2 %>% arrange(group_id)
-    data.table::setorder(removed_lines_2, group_id, na.last = TRUE)
-
-    if(anyNA(removed_lines_2$group_id[l+1])) group_index = group_index +1
-    #print(group_index)
-    #l = l+1
-  }
-
-  removed_multilines_x = removed_lines_2 %>%
-    dplyr::group_by(group_id) %>%
-    dplyr::summarise(do_union = FALSE) %>%
-    sf::st_cast("MULTILINESTRING")
-
-  #list = list(NULL)
-  #list = st_intersects(removed_multilines, removed_multilines)
-
-  removed_multilines_x$n_lines = lengths(removed_multilines_x$geometry)
-
-  removed_multilines_x$length = sf::st_length(removed_multilines_x)
-
-  removed_multilines_x$intersects = sf::st_intersects(removed_multilines_x, removed_multilines_x)
-
-  return  = list(removed_multilines_x,removed_lines_2)
-  names(return) = c("removed_miltilines", "removed_lines")
-
-  return(return)
-}
-
+#
+#
+# # 3 grouping deadends - this has been supercedes by functions in group_midlines_new.R
+#
+# group_deadends = function(dat, line_id = line_id){
+#   #l=1
+#   removed_lines_2 = dat
+#
+#   group_index = 1
+#   removed_lines_2$group_id = NA
+#   #removed_lines_2 = removed_lines_2 %>% arrange(group_id, line_id)
+#   data.table::setorder(removed_lines_2, group_id, line_id)
+#
+#   removed_lines_2$inter = sf::st_intersects(removed_lines_2$geometry, removed_lines_2$geometry)
+#
+#   removed_lines_2$n_ = 1:nrow(removed_lines_2)
+#
+#   for(l in 1:nrow(removed_lines_2)) {
+#     #print(l)
+#     #t = unlist(st_intersects(removed_lines$geometry[l], removed_lines$geometry))
+#     #print(t)
+#     removed_lines_2$group_id[removed_lines_2$n_ %in% removed_lines_2$inter[[l]]] = group_index
+#
+#     #removed_lines_2 = removed_lines_2 %>% arrange(group_id)
+#     data.table::setorder(removed_lines_2, group_id, na.last = TRUE)
+#
+#     if(anyNA(removed_lines_2$group_id[l+1])) group_index = group_index +1
+#     #print(group_index)
+#     #l = l+1
+#   }
+#
+#   removed_multilines_x = removed_lines_2 %>%
+#     dplyr::group_by(group_id) %>%
+#     dplyr::summarise(do_union = FALSE) %>%
+#     sf::st_cast("MULTILINESTRING")
+#
+#   #list = list(NULL)
+#   #list = st_intersects(removed_multilines, removed_multilines)
+#
+#   removed_multilines_x$n_lines = lengths(removed_multilines_x$geometry)
+#
+#   removed_multilines_x$length = sf::st_length(removed_multilines_x)
+#
+#   removed_multilines_x$intersects = sf::st_intersects(removed_multilines_x, removed_multilines_x)
+#
+#   return  = list(removed_multilines_x,removed_lines_2)
+#   names(return) = c("removed_miltilines", "removed_lines")
+#
+#   return(return)
+# }
+#
 
 
 # group_index = 1
