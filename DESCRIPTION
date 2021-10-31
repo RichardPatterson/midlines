@@ -18,4 +18,5 @@ Imports:
     sf,
     dplyr,
     smoothr,
-    data.table
+    data.table,
+    units

@@ -42,7 +42,7 @@ midlines_draw = function(dat, max_dist, near_lanes_dist, near_buffer_dist){
 
 
 
-deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = set_units(1,"m")){
+deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = units::set_units(1,"m")){
 
   if(!(is.null(boarder_line))) {
     dat$boarder_intersect = as.vector(

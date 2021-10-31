@@ -1,6 +1,6 @@
 
 
-de_densify = function(x, density = set_units(20,"m")){
+de_densify = function(x, density = units::set_units(20,"m")){
 
   ls = sf::st_cast(x,"LINESTRING")
   ls$line_id = 1:nrow(ls)
