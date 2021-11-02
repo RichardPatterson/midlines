@@ -2,88 +2,6 @@
   #2001-10-30 version returns lines i.e. added back original lines not the grouped lines (not multilines)
 
 
-# 3 grouping deadends
-
-# banks of n_ not existing as a variable name in dataset.
-
-
-group_lines_a = function(x){
-  #l=1
-
-  lines = x
-
-  lines$group_id = NA
-  #setorder(lines, group_id, line_id)
-  lines$n_ = 1:nrow(lines)
-
-  inter = sf::st_intersects(lines$geometry, lines$geometry)
-  group_index = 1
-
-
-  for(l in 1:nrow(lines)) {
-
-    lines$group_id[lines$n_ %in%
-                               inter[[lines$n_[l]]]] = group_index
-
-    lines = lines[order(lines$group_id, na.last = TRUE),]
-
-    if(anyNA(lines$group_id[l+1])) group_index = group_index +1
-    #print(group_index)
-    l = l+1
-  }
-
-  multilines = lines %>%
-    dplyr::group_by(group_id) %>%
-    dplyr::summarise(do_union = FALSE) %>%
-    sf::st_cast("MULTILINESTRING")
-
-  #multilines$n_lines = lengths(multilines$geometry)
-  multilines$n_lines =lengths(lapply(multilines$geometry, unlist))/4
-
-
-  multilines$length = sf::st_length(multilines)
-
-  #multilines$intersects = st_intersects(multilines, multilines)
-
-
-  return(list(multilines,lines))
-}
-
-
-#' @export
-group_lines = function(x) {
-
-grouped_linestring = sf::st_as_sf(sf::st_cast(sf::st_line_merge(sf::st_union(x)), "LINESTRING"))
-
-colnames(grouped_linestring)[colnames(grouped_linestring) == colnames(grouped_linestring)] = "geometry" #this only works cos there is one column
-sf::st_geometry(grouped_linestring) <- "geometry"
-
-grouped_multilinestring = group_lines_a(grouped_linestring)[[1]]
-
-# this reokaces the variable from the group_lines_a as applying that to that grouped line does something odd.
-grouped_multilinestring$n_lines = (lengths(lapply(grouped_multilinestring$geometry, unlist)) - 2)/ 2
-
-return(grouped_multilinestring)
-}
-
-
-
-
-#
-# o = group_lines_a(deadend_lines)[[1]]
-# o2 = group_lines(deadend_lines)
-#
-#
-# library(rbenchmark)
-# install.packages("rbenchmark")
-#
-# benchmark(group_lines_a(deadend_lines),
-#           group_lines(deadend_lines))
-#
-# benchmark(group_lines_a(cleaned_lines),
-#           group_lines(cleaned_lines))
-
-
 
 
 ##this function uses group lines and cleans them a bit too.
@@ -169,4 +87,66 @@ process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distan
 # plot(cleaned_lines_new$geometry[cleaned_lines_new$added_flag==1], add = TRUE, col="green", lwd=3)
 
 
+## below here conbining group_lines_a and group lines as there is no need for triple nested fuctions
 
+
+
+# 3 grouping deadends
+
+# banks of n_ not existing as a variable name in dataset.
+
+
+#' @export
+group_lines = function(x) {
+
+  lines = sf::st_as_sf(sf::st_cast(sf::st_line_merge(sf::st_union(x)), "LINESTRING"))
+
+  colnames(lines)[colnames(lines) == colnames(lines)] = "geometry" #this only works cos there is one column
+  sf::st_geometry(lines) <- "geometry"
+
+  lines$group_id = NA
+  lines$n_ = 1:nrow(lines)
+
+  inter = sf::st_intersects(lines$geometry, lines$geometry)
+  group_index = 1
+
+  for(l in 1:nrow(lines)) {
+
+    lines$group_id[lines$n_ %in%
+                       inter[[lines$n_[l]]]] = group_index
+
+    lines = lines[order(lines$group_id, na.last = TRUE),]
+
+    if(anyNA(lines$group_id[l+1])) group_index = group_index +1
+      #print(group_index)
+    l = l+1
+    }
+
+  multilines = lines %>%
+  dplyr::group_by(group_id) %>%
+  dplyr::summarise(do_union = FALSE) %>%
+  sf::st_cast("MULTILINESTRING")
+
+  multilines$n_lines =lengths(lapply(multilines$geometry, unlist))/4
+  multilines$length = sf::st_length(multilines)
+
+  #return(list(multilines,lines))
+  #}
+    grouped_multilinestring = multilines
+  ##############
+
+
+  # this reokaces the variable from the group_lines_a as applying that to that grouped line does something odd.
+  grouped_multilinestring$n_lines = (lengths(lapply(grouped_multilinestring$geometry, unlist)) - 2)/ 2
+
+  return(grouped_multilinestring)
+}
+
+
+# a = group_lines(live_deadends[[1]])
+#
+# a1 = group_lines2(live_deadends[[1]])
+#
+# all.equal(a,a1)
+#
+# x = live_deadends[[1]]
