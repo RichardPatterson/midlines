@@ -83,17 +83,14 @@ deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = u
 
 
     removed_lines = removed_mid_points %>%
-        dplyr::group_by(removed_mid_points$line_id) %>%
+        dplyr::group_by(line_id) %>%
         dplyr::summarise(do_union = FALSE) %>%
         sf::st_cast("LINESTRING")
-    colnames(removed_lines) = c("line_id", "geometry")
-
 
     trimmed_lines = trimmed_mid_points %>%
-        dplyr::group_by(trimmed_mid_points$line_id) %>%
+        dplyr::group_by(line_id) %>%
         dplyr::summarise(do_union = FALSE) %>%
         sf::st_cast("LINESTRING")
-    colnames(trimmed_lines) = c("line_id", "geometry")
 
   return = list(removed_lines,trimmed_lines)
 
@@ -101,6 +98,9 @@ deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = u
   return(return)
 
 }
+
+group_id = line_id = NULL
+
 # # this is the original non-looped version
 #   mid_points = st_cast(midlines,"POINT")
 #

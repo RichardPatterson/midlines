@@ -33,10 +33,9 @@ group_lines_a = function(x){
   }
 
   multilines = lines %>%
-    dplyr::group_by(lines$group_id) %>%
+    dplyr::group_by(group_id) %>%
     dplyr::summarise(do_union = FALSE) %>%
     sf::st_cast("MULTILINESTRING")
-  colnames(multilines) = c("group_id", "geometry")
 
   #multilines$n_lines = lengths(multilines$geometry)
   multilines$n_lines =lengths(lapply(multilines$geometry, unlist))/4
