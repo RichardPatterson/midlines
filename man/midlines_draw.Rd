@@ -4,7 +4,7 @@
 \alias{midlines_draw}
 \title{Estimates midlines of sf polygon(s)}
 \usage{
-midlines_draw(dat, boarder_line = NULL, max_dist)
+midlines_draw(dat, border_line = NULL, dfMaxLength = NULL)
 }
 \description{
 Estimates midlines of sf polygon(s)

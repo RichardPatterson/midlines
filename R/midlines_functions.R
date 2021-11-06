@@ -15,7 +15,7 @@
 #'
 #'
 #' @export
-midlines_draw = function(dat, boarder_line = NULL, dfMaxLength = NULL){
+midlines_draw = function(dat, border_line = NULL, dfMaxLength = NULL){
 
   # Input for Voronoi need to be a union of (multi)lines
   line_union = sf::st_union(sf::st_cast(dat,"MULTILINESTRING"))
@@ -25,17 +25,19 @@ midlines_draw = function(dat, boarder_line = NULL, dfMaxLength = NULL){
   line_union = sf::st_segmentize(line_union, dfMaxLength = dfMaxLength)
   }
 
+  # Draws the Voronoi edges
   voronoi_edges = sf::st_cast(sf::st_sf(sf::st_sfc(sf::st_voronoi(do.call("c", sf::st_geometry(line_union)),bOnlyEdges = TRUE)),crs = sf::st_crs(dat)),"LINESTRING")
   colnames(voronoi_edges)[colnames(voronoi_edges) == colnames(voronoi_edges)] = "geometry" #this only works cos there is one column
   sf::st_geometry(voronoi_edges) <- "geometry"
 
+  # Retain only those that remain within polygon
+  voronoi_edges = voronoi_edges[unlist(sf::st_contains_properly(dat, voronoi_edges)),]
   voronoi_edges$line_id = 1:nrow(voronoi_edges)
 
-  voronoi_edges = voronoi_edges[unlist(sf::st_contains_properly(dat, voronoi_edges)),]
-
-  if(!(is.null(boarder_line))) {
-    boarder_poly = sf::st_sfc(sf::st_polygon(boarder_line), crs = sf::st_crs(boarder_line))
-    voronoi_edges = sf::st_intersection(voronoi_edges, boarder_poly) # throws a warning about constant attributes
+  # If a border is specified, to get rid of anything outside of this
+  if(!(is.null(border_line))) {
+    border_poly = sf::st_sfc(sf::st_polygon(border_line), crs = sf::st_crs(border_line))
+    voronoi_edges = sf::st_intersection(voronoi_edges, border_poly) # throws a warning about constant attributes
     }
 
   voronoi_edges
@@ -47,19 +49,16 @@ midlines_draw = function(dat, boarder_line = NULL, dfMaxLength = NULL){
 
 # dat = midlines_all
 # n_removed=10
-# boarder_line = bbox_as_line
-# boarder_distance = set_units(1,"m")
+# border_line = bbox_as_line
+# border_distance = set_units(1,"m")
 # i=1
 
 #' @export
-deadends = function(dat, n_removed=10, boarder_line = NULL){
+midlines_clean = function(dat, n_removed=10, border_line = NULL){
 
-  if(!(is.null(boarder_line))) {
-
-    dat$boarder_intersect = as.vector(sf::st_intersects(dat$geometry, boarder_line , sparse = FALSE))
-
-    #dat$boarder_intersect = as.vector(
-    #  sf::st_is_within_distance(boarder_line, dat$geometry, dist=boarder_distance, sparse=FALSE))
+  # Identify those edges that intersect with the borderline (if specified)
+  if(!(is.null(border_line))) {
+    dat$border_intersect = as.vector(sf::st_intersects(dat$geometry, border_line , sparse = FALSE))
   }
 
   mid_points = sf::st_cast(dat,"POINT")
@@ -78,8 +77,8 @@ deadends = function(dat, n_removed=10, boarder_line = NULL){
     )
     #table(trimmed_mid_points$dead_point)
 
-    if(!(is.null(boarder_line))) {
-      trimmed_mid_points$dead_point[trimmed_mid_points$boarder_intersect==TRUE] = FALSE
+    if(!(is.null(border_line))) {
+      trimmed_mid_points$dead_point[trimmed_mid_points$border_intersect==TRUE] = FALSE
     }
 
 

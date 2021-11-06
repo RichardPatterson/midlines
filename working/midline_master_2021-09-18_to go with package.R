@@ -100,7 +100,7 @@ plot(buffer_pol_union)
 buffer_pol_union = st_remove_holes(buffer_pol_union, max_area = 250)
 plot(buffer_pol_union)
 
-midlines_all = midlines_draw(buffer_pol_union, dfMaxLength = 10, boarder_line = bbox_as_line)
+midlines_all = midlines_draw(buffer_pol_union, dfMaxLength = 10, border_line = bbox_as_line)
 
 
 plot(buffer_pol_union)
@@ -108,7 +108,7 @@ plot(midlines_all$geometry, add = TRUE, col = midlines_all$line_id)
 
 
 
-live_deadends = deadends(midlines_all, n_removed = 10, boarder_line = bbox_as_line)
+live_deadends = midlines_clean(midlines_all, n_removed = 10, border_line = bbox_as_line)
 
 #deadend_lines2 = live_deadends2[live_deadends2$removed_flag==1,]
 #liveend_lines2 = live_deadends2[live_deadends2$removed_flag==0,]
@@ -119,7 +119,7 @@ live_deadends = deadends(midlines_all, n_removed = 10, boarder_line = bbox_as_li
 plot(live_deadends$geometry[live_deadends$removed_flag==0])
 plot(live_deadends$geometry[live_deadends$removed_flag==1], col = "red", add = TRUE)
 
-processed_lines = process_lines(live_deadends, length = set_units(30,"m"), n_removed = 10, boarder_line = bbox_as_line)
+processed_lines = midlines_check(live_deadends, length = set_units(30,"m"), n_removed = 10, border_line = bbox_as_line)
 
 #cleaned_lines = processed_lines$cleaned_lines
 #removed_multilines = processed_lines$removed_multilines
@@ -141,13 +141,8 @@ cleaned_lines = processed_lines %>%
 #group the lines so that small bits especially on the margins can be excluded.
 
 debit_lines = midlines_debit(cleaned_lines, set_units(20,"m"))
-plot(debit_lines$geometry, col = debit_lines$line_id)
-
-## pick up here. need to include grouping into the smooth (and de-densify)
-
-smoothed_lines = smooth(debit_lines)
-
-de_densified = de_densify(smoothed_lines, density = set_units(20, "m"))
+smoothed_lines = midlines_smooth(debit_lines)
+de_densified = midlines_dedensify(smoothed_lines, density = set_units(20, "m"))
 
 plot(debit_lines$geometry)
 plot(smoothed_lines$geometry)
