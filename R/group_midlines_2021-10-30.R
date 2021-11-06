@@ -6,17 +6,23 @@
 
 ##this function uses group lines and cleans them a bit too.
 ###
-#length = set_units(30,"m")
-#n_lines = 10
-#tolerance = set_units(1,"m")
-#x = live_deadends
+# length = set_units(20,"m")
+# n_lines = 10
+# tolerance = set_units(1,"m")
+# boarder_line = bbox_as_line
+# boarder_distance = units::set_units(1,"m")
+# x = live_deadends
+
 ###
 
 #' @export
 process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distance = units::set_units(1,"m")){
 
+  removed = x[x$removed_flag==1,]
+  cleaned = x[x$removed_flag==0,]
+
   #moving this within this cleaning function
-  x_multilines = group_lines(x[[1]])
+  x_multilines = group_lines(removed)
 
 
   # using n_lines as the number of cycles of removing
@@ -27,7 +33,7 @@ process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distan
 
   #the first line finds lines touching boarder and then those removed groups that hit these
   if(!(is.null(boarder_line))) {
-  jj = x[[2]][sf::st_is_within_distance(x[[2]], boarder_line, dist = boarder_distance, sparse = FALSE),]
+  jj = cleaned[sf::st_is_within_distance(cleaned, boarder_line, dist = boarder_distance, sparse = FALSE),]
   add_back_groups3 = x_multilines$group_id[sf::st_intersects(x_multilines, sf::st_union(jj), sparse = FALSE)]
   } else {
     add_back_groups3 = NULL
@@ -37,30 +43,24 @@ process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distan
 
   add_back = x_multilines[x_multilines$group_id %in% add_back_groups,"geometry"]
 
-  ######
-  #i'm going to use st_covers with the multilines to id the lines i need to add back.
-  add_back$lines = sf::st_covers(add_back, x[[1]])
-  u = unlist(unique(add_back$lines))
-  add_back_lines = x[[1]][u,]
-  #need to add these back and compare with the original
-  ######
+  # identify the lines to add back from the multilines
+  add_back_index = lengths(sf::st_covered_by(removed, add_back)) != 0
 
-  #i've lost this so added back don't have an id for now
-  #add_back$line_id = (max(x[[2]]$line_id)+1):(max(x[[2]]$line_id)+nrow(add_back))
+  add_back_lines = removed[add_back_index,]
+  still_removed = removed[!add_back_index,]
 
-  x[[2]]$added_flag = 0
-  #add_back$added_flag = 1
+  cleaned$added_flag = 0
+  still_removed$added_flag = 0
   add_back_lines$added_flag = 1
 
-  cleaned_lines = rbind(x[[2]],add_back_lines)
 
-  #I no longer keep a removed lines
-  removed_multilines = x_multilines[!(x_multilines$group_id %in% add_back_groups),]
+  #cleaned_processed_lines = rbind(cleaned, add_back_lines)
+  cleaned$removed_flag2 = 0
+  add_back_lines$removed_flag2 = 0
+  still_removed$removed_flag2 = 1
 
-  return = list(cleaned_lines,removed_multilines)
-  names(return) = c("cleaned_lines", "removed_multilines")
+  rbind(cleaned, add_back_lines, still_removed)
 
-  return(return)
 }
 
 

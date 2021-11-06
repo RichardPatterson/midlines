@@ -5,17 +5,20 @@
 
 # near_lanes_dist isn't used as I simplified how to id midlines
 
-#dat = CdG_buffer_pol_union
 
-#dat = sth_buffer_pol_union
-#max_dist = max_distance_between_pts
-#near_buffer_dist = near_buffer_distance
+# dat = buffer_pol_union
+# max_dist = max_distance_between_pts
+# near_buffer_dist = near_buffer_distance
 
+#' Estimates midlines of sf polygon(s)
+#'
+#'
+#'
 #' @export
-midlines_draw = function(dat, max_dist, near_lanes_dist, near_buffer_dist){
+midlines_draw = function(dat, boarder_line = NULL, max_dist){
 
   # make linestring and ensure sufficient point density for voronoi
-  line_union = smoothr::densify(sf::st_union(sf::st_cast(dat,"MULTILINESTRING")), max_distance = max_dist)
+  line_union = sf::st_segmentize(sf::st_union(sf::st_cast(dat,"MULTILINESTRING")), dfMaxLength = max_dist)
 
   voronoi_edges = sf::st_cast(sf::st_sf(sf::st_sfc(sf::st_voronoi(do.call("c", sf::st_geometry(line_union)),bOnlyEdges = TRUE)),crs = sf::st_crs(dat)),"LINESTRING")
   colnames(voronoi_edges)[colnames(voronoi_edges) == colnames(voronoi_edges)] = "geometry" #this only works cos there is one column
@@ -24,12 +27,18 @@ midlines_draw = function(dat, max_dist, near_lanes_dist, near_buffer_dist){
   voronoi_edges$line_id = 1:nrow(voronoi_edges)
 
   # simplified - check the order of these wrt time taken
-  midlines = voronoi_edges[!(sf::st_distance(voronoi_edges, line_union) < near_buffer_dist),]
+  # midlines = voronoi_edges[!(sf::st_distance(voronoi_edges, line_union) < near_buffer_dist),]
+  # midlines = midlines[!(sf::st_intersects(midlines, line_union, sparse=FALSE)),]
+  # midlines = midlines[(sf::st_intersects(midlines, dat, sparse=FALSE)),]
 
-  midlines = midlines[!(sf::st_intersects(midlines, line_union, sparse=FALSE)),]
-  midlines = midlines[(sf::st_intersects(midlines, dat, sparse=FALSE)),]
+  voronoi_edges = voronoi_edges[unlist(sf::st_contains_properly(dat, voronoi_edges)),]
 
-  return(midlines)
+  if(!(is.null(boarder_line))) {
+    boarder_poly = sf::st_sfc(sf::st_polygon(boarder_line), crs = sf::st_crs(boarder_line))
+    voronoi_edges = sf::st_intersection(voronoi_edges, boarder_poly)
+  }
+
+  voronoi_edges
 
 }
 
@@ -59,7 +68,11 @@ deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = u
   for(i in 1:n_removed) {
     if (i == 1) trimmed_mid_points = mid_points
 
-    trimmed_mid_points$dead_point = lengths(sf::st_intersects(trimmed_mid_points))==1
+    #trimmed_mid_points$dead_point = lengths(sf::st_intersects(trimmed_mid_points))==1
+    trimmed_mid_points$dead_point = !(
+      duplicated(trimmed_mid_points$geometry) |
+        duplicated(trimmed_mid_points$geometry, fromLast = TRUE)
+    )
     #table(trimmed_mid_points$dead_point)
 
     if(!(is.null(boarder_line))) {
@@ -85,21 +98,25 @@ deadends = function(dat, n_removed=10, boarder_line = NULL, boarder_distance = u
     removed_lines = removed_mid_points %>%
         dplyr::group_by(line_id) %>%
         dplyr::summarise(do_union = FALSE) %>%
-        sf::st_cast("LINESTRING")
+        sf::st_cast("LINESTRING") %>%
+        dplyr::mutate(removed_flag = 1)
 
     trimmed_lines = trimmed_mid_points %>%
         dplyr::group_by(line_id) %>%
         dplyr::summarise(do_union = FALSE) %>%
-        sf::st_cast("LINESTRING")
+        sf::st_cast("LINESTRING") %>%
+      dplyr::mutate(removed_flag = 0)
 
-  return = list(removed_lines,trimmed_lines)
+    rbind(removed_lines, trimmed_lines)
 
-  names(return) = c("deadend_lines", "liveend_lines")
-  return(return)
+  #return = list(removed_lines,trimmed_lines)
+
+  #names(return) = c("deadend_lines", "liveend_lines")
+  #return(return)
 
 }
 
-group_id = line_id = NULL
+group_id = line_id = geometry = NULL
 
 # # this is the original non-looped version
 #   mid_points = st_cast(midlines,"POINT")
