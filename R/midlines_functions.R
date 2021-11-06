@@ -1,24 +1,38 @@
-##2021-10-15 change the creation of dead_line in deadends function to use mutate rather than add_count
-
-################################################################################
-# 1. midlines_draw uses voronoi polygons to draw the midlines of a polygon
-
-# near_lanes_dist isn't used as I simplified how to id midlines
 
 
-# dat = buffer_pol_union
+# x = buffer_pol_union
 # max_dist = max_distance_between_pts
 # near_buffer_dist = near_buffer_distance
 
-#' Estimates midlines of sf polygon(s)
+#' Estimates the midline(s) of sf polygon(s)
 #'
+#' Uses Voronoi polygons to estimate the midlines of one or more sf polygons
 #'
+#' Taking an sf polygon or feature collection of polygons, the function uses Voronoi polygons to estimate the polygon midlines. Sufficient density of points are required on the polygon boarder facilitate the Voronoi process. Large gaps between points are possible along straight edges, therefore dfMaxLength used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf]{st_segmentize}}.
+#'
+#' The Voronoi process is likely to lead to extraneous lines which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
+#'
+#' Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensure the midlines do not extend beyond this.
+#'
+#' @param x an sf polygon within which to estimate the midline
+#' @param border_line an sf linestring of exterior border of the area of interest
+#' @param dfMaxLength maximum distance between points in polygon x used to generate Voronoi polygons. Argument passed to \code{\link[sf]{st_segmentize}}
+#'
+#' @examples
+#' library(sf)
+#' poly = st_buffer(st_linestring(
+#'   matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) )
+#'   ,0.75)
+#' plot(poly, col = "GRAY")
+#'
+#' ml = midlines_draw(poly, dfMaxLength = 1)
+#' plot(ml$geometry, add = TRUE)
 #'
 #' @export
-midlines_draw = function(dat, border_line = NULL, dfMaxLength = NULL){
+midlines_draw = function(x, border_line = NULL, dfMaxLength = NULL){
 
   # Input for Voronoi need to be a union of (multi)lines
-  line_union = sf::st_union(sf::st_cast(dat,"MULTILINESTRING"))
+  line_union = sf::st_union(sf::st_cast(x,"MULTILINESTRING"))
 
   # Ensure sufficient points on straight sections of polygon if max_dist specified
   if(!(is.null(dfMaxLength))){
@@ -26,12 +40,12 @@ midlines_draw = function(dat, border_line = NULL, dfMaxLength = NULL){
   }
 
   # Draws the Voronoi edges
-  voronoi_edges = sf::st_cast(sf::st_sf(sf::st_sfc(sf::st_voronoi(do.call("c", sf::st_geometry(line_union)),bOnlyEdges = TRUE)),crs = sf::st_crs(dat)),"LINESTRING")
+  voronoi_edges = sf::st_cast(sf::st_sf(sf::st_sfc(sf::st_voronoi(do.call("c", sf::st_geometry(line_union)),bOnlyEdges = TRUE)),crs = sf::st_crs(x)),"LINESTRING")
   colnames(voronoi_edges)[colnames(voronoi_edges) == colnames(voronoi_edges)] = "geometry" #this only works cos there is one column
   sf::st_geometry(voronoi_edges) <- "geometry"
 
   # Retain only those that remain within polygon
-  voronoi_edges = voronoi_edges[unlist(sf::st_contains_properly(dat, voronoi_edges)),]
+  voronoi_edges = voronoi_edges[unlist(sf::st_contains_properly(x, voronoi_edges)),]
   voronoi_edges$line_id = 1:nrow(voronoi_edges)
 
   # If a border is specified, to get rid of anything outside of this
@@ -47,21 +61,21 @@ midlines_draw = function(dat, border_line = NULL, dfMaxLength = NULL){
 
 
 
-# dat = midlines_all
+# x = midlines_all
 # n_removed=10
 # border_line = bbox_as_line
 # border_distance = set_units(1,"m")
 # i=1
 
 #' @export
-midlines_clean = function(dat, n_removed=10, border_line = NULL){
+midlines_clean = function(x, n_removed=10, border_line = NULL){
 
   # Identify those edges that intersect with the borderline (if specified)
   if(!(is.null(border_line))) {
-    dat$border_intersect = as.vector(sf::st_intersects(dat$geometry, border_line , sparse = FALSE))
+    x$border_intersect = as.vector(sf::st_intersects(x$geometry, border_line , sparse = FALSE))
   }
 
-  mid_points = sf::st_cast(dat,"POINT")
+  mid_points = sf::st_cast(x,"POINT")
   mid_points$point_id = 1:nrow(mid_points)
 
   removed_mid_points <- data.frame(matrix(ncol = 10, nrow = 0))

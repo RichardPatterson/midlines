@@ -11,11 +11,11 @@ midlines_debit = function(x, length) {
 
 
 #' @export
-midlines_smooth = function(dat, width = 3){
+midlines_smooth = function(x, width = 3){
 
-  dat = midlines_group(dat)
-  dat = dat %>% dplyr::select(geometry)  # stop warning about repeating attributes
-  dat = sf::st_cast(dat,"LINESTRING")
+  dat = midlines_group(x)
+  dat = x %>% dplyr::select(geometry)  # stop warning about repeating attributes
+  dat = sf::st_cast(x,"LINESTRING")
 
   s = function(x){
     l = length(dat$geometry[[x]])

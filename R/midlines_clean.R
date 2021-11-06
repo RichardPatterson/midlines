@@ -77,7 +77,7 @@ midlines_group = function(x) {
 ###
 
 #' @export
-midlines_clean = function(x, n_removed = NULL, length = NULL, border_line = NULL){
+midlines_check = function(x, n_removed = NULL, length = NULL, border_line = NULL){
 
   removed = x[x$removed_flag==1,]
   cleaned = x[x$removed_flag==0,]
