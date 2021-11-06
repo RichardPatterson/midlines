@@ -73,7 +73,7 @@ bbox = sf::st_bbox(la_nantes %>% filter(nom=="Boulevard des Anglais"))
 bbox = sf::st_bbox(la_nantes %>% filter(nom=="Boulevard Charles De Gaulle"))
 
 bbox_as_line = st_cast(st_as_sfc(bbox),"LINESTRING")
-bbox_as_poly = st_sfc(st_polygon(bbox_as_line),crs = st_crs(bbox_as_line))
+#bbox_as_poly = st_sfc(st_polygon(bbox_as_line),crs = st_crs(bbox_as_line))
 
 # maybe something like this to more adequate assess the whole area.
 # a = st_make_grid(bbox, n = c(5,5))
@@ -88,9 +88,6 @@ plot(la_dat$geometry)
 
 
 buffer_width = 7.5                # units don't work with square end style not sure why. it was okay for round ends?
-max_distance_between_pts = 10     # ensure sufficient points on buffer to allow Voronoi
-#near_lanes_distance = set_units(7.5, metres)
-#near_buffer_distance = set_units(5, metres)  # to exclude, higher
 
 #merge cycle lane data
 dat_both = rbind(osm_dat[,"geometry"],la_dat[,"geometry"])
@@ -103,7 +100,7 @@ plot(buffer_pol_union)
 buffer_pol_union = st_remove_holes(buffer_pol_union, max_area = 250)
 plot(buffer_pol_union)
 
-midlines_all = midlines_draw(buffer_pol_union, max_dist = max_distance_between_pts, boarder_line = bbox_as_line)
+midlines_all = midlines_draw(buffer_pol_union, dfMaxLength = 10, boarder_line = bbox_as_line)
 
 
 plot(buffer_pol_union)
@@ -111,7 +108,7 @@ plot(midlines_all$geometry, add = TRUE, col = midlines_all$line_id)
 
 
 
-live_deadends = deadends(midlines_all, n_removed = 10, boarder_line = bbox_as_line, boarder_distance = set_units(1,"m"))
+live_deadends = deadends(midlines_all, n_removed = 10, boarder_line = bbox_as_line)
 
 #deadend_lines2 = live_deadends2[live_deadends2$removed_flag==1,]
 #liveend_lines2 = live_deadends2[live_deadends2$removed_flag==0,]
@@ -122,7 +119,7 @@ live_deadends = deadends(midlines_all, n_removed = 10, boarder_line = bbox_as_li
 plot(live_deadends$geometry[live_deadends$removed_flag==0])
 plot(live_deadends$geometry[live_deadends$removed_flag==1], col = "red", add = TRUE)
 
-processed_lines = process_lines(live_deadends, length = set_units(30,"m"), n_lines = 10, boarder_line = bbox_as_line, boarder_distance = set_units(1,"m"))
+processed_lines = process_lines(live_deadends, length = set_units(30,"m"), n_removed = 10, boarder_line = bbox_as_line)
 
 #cleaned_lines = processed_lines$cleaned_lines
 #removed_multilines = processed_lines$removed_multilines
@@ -150,18 +147,10 @@ plot(debit_lines$geometry, col = debit_lines$line_id)
 
 smoothed_lines = smooth(debit_lines)
 
-plot(debit_lines$geometry)
-plot(smoothed_lines$geometry)
-#plot(de_densified$geometry)
-
-plot(debit_lines$geometry[4])
-plot(smoothed_lines$geometry[4])
-#plot(de_densified$geometry[4])
-
-###########
-
 de_densified = de_densify(smoothed_lines, density = set_units(20, "m"))
 
+plot(debit_lines$geometry)
+plot(smoothed_lines$geometry)
 plot(de_densified$geometry, col = de_densified$line_id)
 
 

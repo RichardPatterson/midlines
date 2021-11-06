@@ -7,7 +7,7 @@
 ##this function uses group lines and cleans them a bit too.
 ###
 # length = set_units(20,"m")
-# n_lines = 10
+# n_removed = 10
 # tolerance = set_units(1,"m")
 # boarder_line = bbox_as_line
 # boarder_distance = units::set_units(1,"m")
@@ -16,7 +16,7 @@
 ###
 
 #' @export
-process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distance = units::set_units(1,"m")){
+process_lines = function(x, n_removed = NULL, length = NULL, boarder_line = NULL){
 
   removed = x[x$removed_flag==1,]
   cleaned = x[x$removed_flag==0,]
@@ -26,15 +26,24 @@ process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distan
 
 
   # using n_lines as the number of cycles of removing
-  add_back_groups1 = x_multilines$group_id[x_multilines$n_lines >= n_lines]
+  if(!(is.null(n_removed))){
+    add_back_groups1 = x_multilines$group_id[x_multilines$n_lines >= n_removed]
+    } else {
+    add_back_groups1 = NULL
+  }
 
-  #those greater than 20m
-  add_back_groups2 = x_multilines$group_id[x_multilines$length>length]
+  # those greater than length stipulated
+  if(!(is.null(length))){
+    add_back_groups2 = x_multilines$group_id[x_multilines$length>length]
+    } else {
+    add_back_groups2 = NULL
+  }
 
   #the first line finds lines touching boarder and then those removed groups that hit these
   if(!(is.null(boarder_line))) {
-  jj = cleaned[sf::st_is_within_distance(cleaned, boarder_line, dist = boarder_distance, sparse = FALSE),]
-  add_back_groups3 = x_multilines$group_id[sf::st_intersects(x_multilines, sf::st_union(jj), sparse = FALSE)]
+    #touch_boarder = cleaned[sf::st_is_within_distance(cleaned, boarder_line, dist = boarder_distance, sparse = FALSE),]
+    touch_boarder = cleaned[sf::st_intersects(cleaned, boarder_line, sparse = FALSE),]
+    add_back_groups3 = x_multilines$group_id[sf::st_intersects(x_multilines, sf::st_union(touch_boarder), sparse = FALSE)]
   } else {
     add_back_groups3 = NULL
   }
@@ -49,42 +58,20 @@ process_lines = function(x, n_lines, length, boarder_line = NULL, boarder_distan
   add_back_lines = removed[add_back_index,]
   still_removed = removed[!add_back_index,]
 
-  cleaned$added_flag = 0
-  still_removed$added_flag = 0
-  add_back_lines$added_flag = 1
+  cleaned$added_flag = factor(0)
+  still_removed$added_flag = factor(0)
+  add_back_lines$added_flag = factor(1)
 
-
-  #cleaned_processed_lines = rbind(cleaned, add_back_lines)
-  cleaned$removed_flag2 = 0
-  add_back_lines$removed_flag2 = 0
-  still_removed$removed_flag2 = 1
+  cleaned$removed_flag2 = factor(0)
+  add_back_lines$removed_flag2 = factor(0)
+  still_removed$removed_flag2 = factor(1)
 
   rbind(cleaned, add_back_lines, still_removed)
 
 }
 
 
-#new = process_lines(live_deadends, length = set_units(20,"m"), n_lines = 10, tolerance = set_units(1,"m") )
 
-
-# processed_lines = process_lines(live_deadends, length = set_units(20,"m"), n_lines = 10, tolerance = set_units(1,"m"))
-#
-# cleaned_lines = processed_lines$cleaned_lines
-# removed_multilines = processed_lines$removed_multilines
-#
-# plot(midlines_all$geometry)
-# plot(deadend_lines$geometry, add = TRUE, col="red", lwd=3)
-# plot(cleaned_lines$geometry[cleaned_lines$added_flag==1], add = TRUE, col="green", lwd=3)
-#
-#
-# processed_lines_new = process_lines_new(live_deadends, length = set_units(20,"m"), n_lines = 10, tolerance = set_units(1,"m"))
-#
-# cleaned_lines_new = processed_lines_new$cleaned_lines
-# removed_multilines_new = processed_lines_new$removed_multilines
-#
-# plot(midlines_all$geometry)
-# plot(deadend_lines$geometry, add = TRUE, col="red", lwd=3)
-# plot(cleaned_lines_new$geometry[cleaned_lines_new$added_flag==1], add = TRUE, col="green", lwd=3)
 
 
 ## below here conbining group_lines_a and group lines as there is no need for triple nested fuctions
