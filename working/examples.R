@@ -41,7 +41,8 @@ plot(p2, add = TRUE)
 p3 = st_union(p1, p2)
 plot(p3, col = "GRAY")
 
-bbox_as_line = st_cast(st_as_sfc(st_bbox(c(xmin = 0, xmax = 30, ymax = -10, ymin = 10))),"LINESTRING")
+bbox_as_line = st_cast(st_as_sfc(st_bbox
+                                 (c(xmin = 0, xmax = 30, ymax = -10, ymin = 10))),"LINESTRING")
 plot(bbox_as_line, add = TRUE)
 
 ml = midlines_draw(p3, dfMaxLength = 1)
@@ -78,7 +79,8 @@ ml_check2 = midlines_check(ml_clean, length = 5)
 plot(p3, col = "GRAY")
 plot(ml_check2$geometry, col = ml_check2$removed_flag2, add = TRUE)
 
-bbox_as_line = st_cast(st_as_sfc(st_bbox(c(xmin = 0, xmax = 30, ymax = -10, ymin = 10))),"LINESTRING")
+bbox_as_line = st_cast(st_as_sfc(st_bbox
+                                 (c(xmin = 0, xmax = 30, ymax = -10, ymin = 10))),"LINESTRING")
 plot(bbox_as_line, add = TRUE)
 
 ml_check3 = midlines_check(ml_clean, border_line = bbox_as_line)
