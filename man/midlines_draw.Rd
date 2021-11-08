@@ -9,7 +9,7 @@ midlines_draw(x, border_line = NULL, dfMaxLength = NULL)
 \arguments{
 \item{x}{an sf polygon within which to estimate the midline}
 
-\item{border_line}{an sf linestring of exterior border of the area of interest}
+\item{border_line}{an sf linestring forming the exterior border of the area of interest}
 
 \item{dfMaxLength}{maximum distance between points in polygon x used to generate Voronoi polygons. Argument passed to \code{\link[sf]{st_segmentize}}}
 }
@@ -17,17 +17,15 @@ midlines_draw(x, border_line = NULL, dfMaxLength = NULL)
 Uses Voronoi polygons to estimate the midlines of one or more sf polygons
 }
 \details{
-Taking an sf polygon or feature collection of polygons, the function uses Voronoi polygons to estimate the polygon midlines. Sufficient density of points are required on the polygon boarder facilitate the Voronoi process. Large gaps between points are possible along straight edges, therefore dfMaxLength used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf]{st_segmentize}}.
+Taking an sf polygon or feature collection of polygons, the function uses Voronoi tessellation to estimate the polygon midlines. Sufficient density of points are required on the polygon boarder facilitate the Voronoi tessellation. Large gaps between points are possible on straight lines on polygon perimeters, therefore dfMaxLength is used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf]{st_segmentize}}.
 
-The Voronoi process is likely to lead to extraneous lines which do not form part of the intended midline. Addition functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with those.
+The Voronoi tessellation is likely to lead to extraneous lines which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
 
-Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensure midline doesn't extend beyond this.
+Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensure the midlines do not extend beyond this.
 }
 \examples{
 library(sf)
-poly = st_buffer(st_linestring(
-  matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) )
-  ,0.75)
+poly = st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75)
 plot(poly, col = "GRAY")
 
 ml = midlines_draw(poly, dfMaxLength = 1)

@@ -8,21 +8,19 @@
 #'
 #' Uses Voronoi polygons to estimate the midlines of one or more sf polygons
 #'
-#' Taking an sf polygon or feature collection of polygons, the function uses Voronoi polygons to estimate the polygon midlines. Sufficient density of points are required on the polygon boarder facilitate the Voronoi process. Large gaps between points are possible along straight edges, therefore dfMaxLength used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf]{st_segmentize}}.
+#' Taking an sf polygon or feature collection of polygons, the function uses Voronoi tessellation to estimate the polygon midlines. Sufficient density of points are required on the polygon boarder facilitate the Voronoi tessellation. Large gaps between points are possible on straight lines on polygon perimeters, therefore dfMaxLength is used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf]{st_segmentize}}.
 #'
-#' The Voronoi process is likely to lead to extraneous lines which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
+#' The Voronoi tessellation is likely to lead to extraneous lines which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
 #'
 #' Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensure the midlines do not extend beyond this.
 #'
 #' @param x an sf polygon within which to estimate the midline
-#' @param border_line an sf linestring of exterior border of the area of interest
+#' @param border_line an sf linestring forming the exterior border of the area of interest
 #' @param dfMaxLength maximum distance between points in polygon x used to generate Voronoi polygons. Argument passed to \code{\link[sf]{st_segmentize}}
 #'
 #' @examples
 #' library(sf)
-#' poly = st_buffer(st_linestring(
-#'   matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) )
-#'   ,0.75)
+#' poly = st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75)
 #' plot(poly, col = "GRAY")
 #'
 #' ml = midlines_draw(poly, dfMaxLength = 1)
@@ -67,8 +65,56 @@ midlines_draw = function(x, border_line = NULL, dfMaxLength = NULL){
 # border_distance = set_units(1,"m")
 # i=1
 
+#' Aims to clean extraneous lines from estimated midlines
+#'
+#' Intended for use following \code{\link{midlines_draw}} which uses Voronoi tessellation to estimate polygon midlines. The Voronoi tessellation results in extraneous lines, in addition to the intended midlines. This function aims to remove those lines.
+#'
+#' Extraneous lines are often short deadends protruding from the intended midlines. This function identifies these lines by identifying line ends and flagging them (with the addition of a 'flag' variable). The process iterates through several cycles of line end identification with the number of cycles specified by the option n_removed. It is likely that some of the intended midlines will also be flagged, it their ends. All lines are returned so that the user can clearly see which lines have been flagged and all lines can then be passed to \code{\link{midlines_check}} which should enable the midlines which have been flagged to be differentiated from the extraneous lines. Depending on the specific use, it may be best to use this function (\code{\link{midlines_check}}) more than once.
+#'
+#' The border_lines option preemptively prevents lines being flagged if they intersect with a boarder defined by an sf linestring. This might be useful if the border intersects with the extremities of the midlines to prevent their being flagged for removal.
+#'
+#' @param x Simple features collection. Intended for use with the output from \code{\link{midlines_draw}}
+#'
+#' @param n_removed specified the number of cycles of line removal
+#'
+#' @param border_line an sf linestring forming the exterior border of the area of interest (see below)
+#'
+#' @examples
+#' library(sf)
+#' # 1
+#' poly = st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75)
+#' plot(poly, col = "GRAY")
+#'
+#' ml = midlines_draw(poly, dfMaxLength = 1)
+#' plot(ml$geometry, add = TRUE)
+#'
+#' ml_clean = midlines_clean(ml)
+#' plot(ml_clean$geometry, col = ml_clean$removed_flag, add = TRUE)
+#'
+#' #2
+#' p1 = st_buffer(st_linestring(matrix(c(0,0,30,0),ncol=2, byrow=TRUE) ),0.75)
+#' plot(p1)
+#' p2 = st_buffer(st_linestring(matrix(c(9,5,9,0,20,0,18,-4),ncol=2, byrow=TRUE) ),0.75)
+#' plot(p2, add = TRUE)
+#' p3 = st_union(p1, p2)
+#' plot(p3, col = "GRAY")
+#'
+#' bbox_as_line = st_cast(st_as_sfc(st_bbox
+#'   (c(xmin = 0, xmax = 30, ymax = -10, ymin = 10))),"LINESTRING")
+#' plot(bbox_as_line, add = TRUE)
+#'
+#' ml = midlines_draw(p3, dfMaxLength = 1)
+#' plot(ml$geometry, add = TRUE)
+#'
+#' ml_clean = midlines_clean(ml, n_removed = 10)
+#' plot(ml_clean$geometry, col = ml_clean$removed_flag, add = TRUE)
+#'
+#' ml_clean2 = midlines_clean(ml, n_removed = 10, border_line = bbox_as_line)
+#' plot(p3, col = "GRAY")
+#' plot(ml_clean2$geometry, col = ml_clean2$removed_flag, add = TRUE)
+#'
 #' @export
-midlines_clean = function(x, n_removed=10, border_line = NULL){
+midlines_clean = function(x, n_removed = 1, border_line = NULL){
 
   # Identify those edges that intersect with the borderline (if specified)
   if(!(is.null(border_line))) {
@@ -110,7 +156,6 @@ midlines_clean = function(x, n_removed=10, border_line = NULL){
 
   }#for loop
 
-
     removed_lines = removed_mid_points %>%
         dplyr::group_by(line_id) %>%
         dplyr::summarise(do_union = FALSE) %>%
@@ -123,12 +168,7 @@ midlines_clean = function(x, n_removed=10, border_line = NULL){
         sf::st_cast("LINESTRING") %>%
       dplyr::mutate(removed_flag = factor(0))
 
-    rbind(removed_lines, trimmed_lines)
-
-  #return = list(removed_lines,trimmed_lines)
-
-  #names(return) = c("deadend_lines", "liveend_lines")
-  #return(return)
+    rbind(trimmed_lines, removed_lines)
 
 }
 
