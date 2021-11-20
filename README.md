@@ -6,35 +6,29 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of midlines is to …
+The goal of midlines is to estimate the midline of a one or more
+polygons.
 
 ## Installation
 
-You can install the released version of midlines from
-[CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("midlines")
-```
-
-And the development version from [GitHub](https://github.com/) with:
+You can install the package from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
+# library(devtools)
 devtools::install_github("RichardPatterson/midlines")
 ```
 
+N.B. to install midlines from GitHub, you will need to install and
+attach the devtools package if you have not already done so.
+
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Using a toy example to demonstrate:
 
 ``` r
 library(midlines)
-#> 
-#> Attaching package: 'midlines'
-#> The following object is masked from 'package:stats':
-#> 
-#>     smooth
+library(tmap)
 ## basic example code
 ```
 

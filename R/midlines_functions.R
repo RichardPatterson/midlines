@@ -8,7 +8,7 @@
 #'
 #' Uses Voronoi polygons to estimate the midlines of one or more sf polygons
 #'
-#' Taking an sf polygon or feature collection of polygons, the function uses Voronoi tessellation to estimate the polygon midlines. Sufficient density of points are required on the polygon boarder facilitate the Voronoi tessellation. Large gaps between points are possible on straight lines on polygon perimeters, therefore dfMaxLength is used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf]{st_segmentize}}.
+#' Taking an sf polygon or feature collection of polygons, the function uses Voronoi tessellation to estimate the polygon midlines. Sufficient density of points are required on the polygon boarder facilitate the Voronoi tessellation. Large gaps between points are possible on straight lines on polygon perimeters, therefore dfMaxLength is used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf:geos_unary]{sf::st_segmentize()}}.
 #'
 #' The Voronoi tessellation is likely to lead to extraneous lines which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
 #'
@@ -16,7 +16,7 @@
 #'
 #' @param x an sf polygon within which to estimate the midline
 #' @param border_line an sf linestring forming the exterior border of the area of interest
-#' @param dfMaxLength maximum distance between points in polygon x used to generate Voronoi polygons. Argument passed to \code{\link[sf]{st_segmentize}}
+#' @param dfMaxLength maximum distance between points in polygon x used to generate Voronoi polygons. Argument passed to \code{\link[sf:geos_unary]{sf::st_segmentize()}}.
 #'
 #' @examples
 #' library(sf)
@@ -48,7 +48,7 @@ midlines_draw = function(x, border_line = NULL, dfMaxLength = NULL){
 
   # If a border is specified, to get rid of anything outside of this
   if(!(is.null(border_line))) {
-    border_poly = sf::st_sfc(sf::st_polygon(border_line), crs = sf::st_crs(border_line))
+    border_poly = sf::st_sfc(sf::st_polygon(st_union(border_line)), crs = sf::st_crs(border_line))
     voronoi_edges = sf::st_intersection(voronoi_edges, border_poly) # throws a warning about constant attributes
     }
 
