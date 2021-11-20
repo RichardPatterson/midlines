@@ -29,6 +29,10 @@ Using a toy example to demonstrate:
 ``` r
 library(midlines)
 library(tmap)
+
+#thames = thames
+
+#tm_shape(thames)
 ## basic example code
 ```
 

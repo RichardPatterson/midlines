@@ -38,6 +38,10 @@ Using a toy example to demonstrate:
 ```{r example}
 library(midlines)
 library(tmap)
+
+#thames = thames
+
+#tm_shape(thames)
 ## basic example code
 ```
 
