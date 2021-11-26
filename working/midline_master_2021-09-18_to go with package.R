@@ -45,6 +45,7 @@ library(sf)
 library(dplyr)
 library(units)
 library(nngeo)
+library(tmap)
 
 
 load_all()
@@ -85,7 +86,7 @@ la_dat = la_nantes %>% st_intersection(st_as_sfc(bbox))
 osm_dat = osm_cycle_infra %>% st_intersection(st_as_sfc(bbox))
 
 plot(la_dat$geometry)
-
+#tm_shape(la_dat$geometry) + tm_lines()
 
 buffer_width = 7.5                # units don't work with square end style not sure why. it was okay for round ends?
 

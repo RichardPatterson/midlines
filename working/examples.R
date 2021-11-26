@@ -1,16 +1,14 @@
 
-
-
 library(devtools)
-
 
 load_all()
 
 devtools::check()
 
+install.packages("sf", "lwgeom", "nngeo")
 
-
-
+#______________________________________________________________________________#
+#This version uses plot - below there is a tmap version
 
 #############
 # midlines_draw
@@ -120,11 +118,126 @@ plot(ml_dedensified$geometry, add = TRUE)
 ################
 
 
+#______________________________________________________________________________#
+#This version uses plot - below there is a tmap version
+
+library(tmap)
+#############
+# midlines_draw
+library(sf)
+(poly = st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75))
+(poly = st_sfc(st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75), crs = 4326))
+#(poly = st_sf(st_sfc(st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75), crs = 4326)))
+plot(poly, col = "GRAY")
+(p_plt = tm_shape(st_geometry(poly)) + tm_polygons() + tm_layout(frame = FALSE))
+
+
+ml = midlines_draw(poly, dfMaxLength = 1)
+#plot(ml$geometry, add = TRUE)
+p_plt + tm_shape(ml) + tm_lines()
+################
+# midlines_clean
+library(sf)
+# 1
+poly = st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75)
+plot(poly, col = "GRAY")
+
+ml = midlines_draw(poly, dfMaxLength = 1)
+plot(ml$geometry, add = TRUE)
+
+ml_clean = midlines_clean(ml)
+plot(ml_clean$geometry, col = ml_clean$removed_flag, add = TRUE)
+
+# 2
+p1 = st_buffer(st_linestring(matrix(c(0,0,30,0),ncol=2, byrow=TRUE) ),0.75)
+plot(p1)
+p2 = st_buffer(st_linestring(matrix(c(9,5,9,0,20,0,18,-4),ncol=2, byrow=TRUE) ),0.75)
+plot(p2, add = TRUE)
+p3 = st_union(p1, p2)
+plot(p3, col = "GRAY")
+
+bbox_as_line = st_cast(st_as_sfc(st_bbox
+                                 (c(xmin = 0, xmax = 30, ymax = -10, ymin = 10))),"LINESTRING")
+plot(bbox_as_line, add = TRUE)
+
+ml = midlines_draw(p3, dfMaxLength = 1)
+plot(ml$geometry, add = TRUE)
+
+ml_clean = midlines_clean(ml, n_removed = 10)
+plot(ml_clean$geometry, col = ml_clean$removed_flag, add = TRUE)
+
+ml_clean2 = midlines_clean(ml, n_removed = 10, border_line = bbox_as_line)
+plot(p3, col = "GRAY")
+plot(ml_clean2$geometry, col = ml_clean2$removed_flag, add = TRUE)
+
+#################
+# midlines_check
+library(sf)
+p1 = st_buffer(st_linestring(matrix(c(0,0,30,0),ncol=2, byrow=TRUE) ),0.75)
+plot(p1)
+p2 = st_buffer(st_linestring(matrix(c(9,5,9,0,20,0,18,-4),ncol=2, byrow=TRUE) ),0.75)
+plot(p2, add = TRUE)
+p3 = st_union(p1, p2)
+plot(p3, col = "GRAY")
+
+ml = midlines_draw(p3, dfMaxLength = 1)
+plot(ml$geometry, add = TRUE)
+
+ml_clean = midlines_clean(ml, n_removed = 15)
+plot(ml_clean$geometry, col = ml_clean$removed_flag, add = TRUE)
+
+ml_check = midlines_check(ml_clean, n_removed = 10)
+plot(p3, col = "GRAY")
+plot(ml_check$geometry, col = ml_check$removed_flag2, add = TRUE)
+
+ml_check2 = midlines_check(ml_clean, length = 5)
+plot(p3, col = "GRAY")
+plot(ml_check2$geometry, col = ml_check2$removed_flag2, add = TRUE)
+
+bbox_as_line = st_cast(st_as_sfc(st_bbox
+                                 (c(xmin = 0, xmax = 30, ymax = -10, ymin = 10))),"LINESTRING")
+plot(bbox_as_line, add = TRUE)
+
+ml_check3 = midlines_check(ml_clean, border_line = bbox_as_line)
+plot(p3, col = "GRAY")
+plot(ml_check3$geometry, col = ml_check3$removed_flag2, add = TRUE)
+
+##############
+# midlines_smooth
+library(sf)
+poly = st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75)
+plot(poly, col = "GRAY")
+
+ml = midlines_clean(midlines_draw(poly, dfMaxLength = 1))
+ml = ml[ml$removed_flag==0,]
+plot(ml$geometry, add = TRUE)
+
+ml_smooth = midlines_smooth(ml)
+plot(poly, col = "GRAY")
+plot(ml_smooth$geometry, add = TRUE)
+
+
+############################################
+##############
+# midlines_dedensify
+library(sf)
+poly = st_buffer(st_linestring(matrix(c(0,0,10,0,10,10,0,10,0,0),ncol=2, byrow=TRUE) ),0.75)
+plot(poly, col = "GRAY")
+
+ml = midlines_clean(midlines_draw(poly, dfMaxLength = 1))
+ml = ml[ml$removed_flag==0,]
+plot(ml$geometry, add = TRUE)
+
+ml_dedensified = midlines_dedensify(ml, density = 1)
+plot(poly, col = "GRAY")
+plot(ml_dedensified$geometry, add = TRUE)
+
+################
 
 
 
-
-
+#______________________________________________________________________________#
+# This is additional stuff
 
 g = st_polygon(
   st_difference(
