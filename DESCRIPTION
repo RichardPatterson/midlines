@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "richard-patterson@hotmail.co.uk",
            comment = c(ORCID = "0000-0002-8563-6053"))
-Description: What the package does (one paragraph).
+Description: Estimates the midline of polygons provided in sf format. The package uses Voronoi tessellation to estimate the midline and offers some functions that can help to clean the lines.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
