@@ -95,8 +95,6 @@ a time.
 
 ``` r
 m2 = midlines_clean(m1)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ```
 
@@ -105,8 +103,6 @@ plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ``` r
 m2 = m2[m2$removed_flag==0, c(1,2)]
 m2 = midlines_clean(m2)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ```
 
@@ -115,8 +111,6 @@ plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ``` r
 m2 = m2[m2$removed_flag==0, c(1,2)]
 m2 = midlines_clean(m2)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ```
 
@@ -125,8 +119,6 @@ plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ``` r
 m2 = m2[m2$removed_flag==0, c(1,2)]
 m2 = midlines_clean(m2)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ```
 
@@ -137,8 +129,6 @@ of line segment removal are completed.
 
 ``` r
 m2 = midlines_clean(m1, n_removed = 4)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 plot(m2$geometry[m2$removed_flag==0], col = "BLUE")
 ```
 
@@ -179,8 +169,6 @@ with the n_removed option, it will identify lines of 5 or more segments.
 
 ``` r
 m2 = midlines_clean(m1, n_removed = 5)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 m3 = midlines_check(m2, n_removed = 5)
 plot(m3$geometry, col = c("BLUE", "RED")[m3$removed_flag2])
 ```
@@ -208,8 +196,6 @@ unflagging those with five or more line segments.
 
 ``` r
 m2 = midlines_clean(m1, n_removed = 5)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 m3 = midlines_check(m2, length = set_units(230,"m"))
 plot(m3$geometry, col = c("BLUE", "RED")[m3$removed_flag2])
 ```
@@ -227,8 +213,6 @@ ends of the desired midline are not removed.
 
 ``` r
 m2 = midlines_clean(m1, n_removed = 10)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 
 bbox_line = st_cast(st_as_sfc(st_bbox(c(xmin = 535070, ymin = 177800, xmax = 542560, ymax = 181550), crs = 27700)), "LINESTRING")
 m3 = midlines_check(m2, border_line = bbox_line)
@@ -266,8 +250,6 @@ plot(bbox_line, add = TRUE)
 
 ``` r
 m2 = midlines_clean(m1, n_removed = 5, border_line = bbox_line)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 m3 = midlines_check(m2, n_removed = 5, border_line = bbox_line)
 plot(m3$geometry, col = c("BLUE", "RED")[m3$removed_flag2])
 plot(bbox_line, add = TRUE)
@@ -342,8 +324,6 @@ plot(ml2$geometry, add = TRUE, col = "BLUE")
 ``` r
 # using the border_line to prevent removal of lines of interest
 mlcl = midlines_clean(ml2, n_removed = 20, border_line = bbox_line_s)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 plot(mlcl$geometry, col = c("BLUE", "RED")[mlcl$removed_flag])
 ```
 
@@ -447,8 +427,6 @@ ml2 = midlines_draw(int2, dfMaxLength = set_units(8,"m"), border_line = bbox_lin
 
 # clean this to remove extraneous lines
 gg = midlines_clean(ml2, border_line = bbox_line_s, n_removed = 5)
-#> Warning in st_cast.sf(x, "POINT"): repeating attributes for all sub-geometries
-#> for which they may not be constant
 plot(gg$geometry[gg$removed_flag==0], add = TRUE, col = "RED")
 ```
 

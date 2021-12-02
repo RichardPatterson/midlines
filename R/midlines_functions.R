@@ -29,6 +29,12 @@
 #' @export
 midlines_draw = function(x, border_line = NULL, dfMaxLength = NULL){
 
+  # Check input is a valid sfc polygon
+  if(!(any(class(st_geometry(x)) == "sfc_POLYGON"))){
+    stop("x should be of sfc_polygon")
+  }
+
+
   # Input for Voronoi need to be a union of (multi)lines
   line_union = sf::st_union(sf::st_cast(x,"MULTILINESTRING"))
 
@@ -121,7 +127,12 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
     x$border_intersect = as.vector(sf::st_intersects(x$geometry, border_line , sparse = FALSE))
   }
 
+  # to prevent the warning about repeat attributes for all sub-geometries
+  st_agr(x) = "constant"
+
   mid_points = sf::st_cast(x,"POINT")
+
+
   mid_points$point_id = 1:nrow(mid_points)
 
   removed_mid_points <- data.frame(matrix(ncol = 10, nrow = 0))

@@ -289,7 +289,7 @@ Where the points in a polygon are increased to improve midlines estimation, it m
 
 ## Voronoi polygons
 
-The estimation of midlines is done using Voronoi tessellation via the sf::st_voronoi function. Some understanding of how this process works will help to understand how the attributed of the polygon will influence the estimation of it's midline. For a given set of points, Voronoi tessellation identifies the area around each point that are closer to that point than any other. Below is an demonstration using the points in the perimeter of the river Thames polygon as the starting point.
+The estimation of midlines is done using Voronoi tessellation via the sf::st_voronoi function. Some understanding of how this process works will help to understand how the attributed of the polygon will influence the estimation of it's midline. For a given set of points, Voronoi tessellation identifies the area around each point that are closer to that point than any other. Below is an demonstration using the points in the perimeter of the river Thames polygon as the starting point. 
 
 ```{r voronoi, echo = FALSE}
 j = st_line_sample(st_cast(thames, "LINESTRING"), density = 1/250)
