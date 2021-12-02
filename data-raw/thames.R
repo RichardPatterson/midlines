@@ -24,7 +24,10 @@ q = st_union(st_union(q1, q2, by_feature = TRUE))
 
 g = st_transform(q, 27700)
 
-bbox = st_bbox(c(xmin = 534773.3, ymin = 176901.5, xmax = 543162.4, ymax = 181853.3), crs = 27700)
+#bbox = st_bbox(c(xmin = 534773.3, ymin = 176901.5, xmax = 543162.4, ymax = 181853.3), crs = 27700)
+#bbox = st_bbox(c(xmin = 534770, ymin = 177800, xmax = 543160, ymax = 181850), crs = 27700)
+bbox = st_bbox(c(xmin = 534770, ymin = 177800, xmax = 542860, ymax = 181850), crs = 27700)
+
 
 g = st_intersection(g, st_as_sfc(bbox))
 plot(g)
