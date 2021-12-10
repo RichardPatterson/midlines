@@ -135,8 +135,7 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
 
   mid_points$point_id = 1:nrow(mid_points)
 
-  removed_mid_points <- data.frame(matrix(ncol = 10, nrow = 0))
-
+  removed_mid_points = vector("list", n_removed)
 
   for(i in 1:n_removed) {
     if (i == 1) trimmed_mid_points = mid_points
@@ -152,20 +151,18 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
       trimmed_mid_points$dead_point[trimmed_mid_points$border_intersect==TRUE] = FALSE
     }
 
-
     ls =trimmed_mid_points$line_id[trimmed_mid_points$dead_point]
     trimmed_mid_points$dead_line = trimmed_mid_points$line_id %in% ls
 
 
-    trimmed_mid_points$cycle = i
-
-    new_removed_mid_points =trimmed_mid_points[trimmed_mid_points$dead_line == TRUE,]
-    removed_mid_points = rbind(removed_mid_points, new_removed_mid_points)
+    removed_mid_points[[i]] = trimmed_mid_points[trimmed_mid_points$dead_line == TRUE,]
 
     trimmed_mid_points =trimmed_mid_points[trimmed_mid_points$dead_line == FALSE,]
 
 
   }#for loop
+
+  removed_mid_points = bind_rows(removed_mid_points, .id = "cycle")
 
     removed_lines = removed_mid_points %>%
         dplyr::group_by(line_id) %>%
