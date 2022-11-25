@@ -12,5 +12,5 @@ midlines_debit(x, length)
 \item{length}{the length below which groups of lines will be removed}
 }
 \description{
-Lines are removed if when groups into contiguous clusters the total length of the cluster is less that length. The dataset of ungrouped lines is returned.
+Lines are removed if, when grouped into contiguous clusters, the total length of the cluster is less the specified length. The dataset of ungrouped lines is returned.
 }

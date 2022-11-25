@@ -57,7 +57,15 @@ thames = g
 
 plot(thames, col = "red")
 
-save(thames, file = "data-raw/thames.RData")
+# Two attempts to remove the R CMD check warning about non-ASCII characters. Neither worked.
+# Only a problem for CRAN submission
 
+# 1) remove CRS as package check flag non ASCII characters in the CRS
+# st_crs(thames) = NA
+
+# 2) removing does't work so trying this to get rid of the offending symbols https://github.com/r-spatial/sf/issues/1341#issuecomment-1120284345
+#st_crs(thames)$wkt <- gsub("°|º", "\\\u00b0", st_crs(thames)$wkt)
+
+save(thames, file = "data-raw/thames.RData")
 
 usethis::use_data(thames, overwrite = TRUE)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/midlines_polish.R
 \name{midlines_smooth}
 \alias{midlines_smooth}
-\title{Used a rolling mean to smooth midlines}
+\title{Uses a rolling mean to smooth midlines}
 \usage{
 midlines_smooth(x, width = 3)
 }
