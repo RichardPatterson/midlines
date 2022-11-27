@@ -14,3 +14,6 @@ midlines_debit(x, length)
 \description{
 Lines are removed if, when grouped into contiguous clusters, the total length of the cluster is less the specified length. The dataset of ungrouped lines is returned.
 }
+\details{
+Unlike other functions in this package, \code{midlines-debit} will remove these line segments, rather than creating a flag variable.
+}

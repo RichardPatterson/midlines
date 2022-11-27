@@ -42,7 +42,7 @@ midlines_debit = function(x, length) {
 midlines_smooth = function(x, width = 3){
 
   dat = midlines_group(x)
-  dat = dat %>% dplyr::select(geometry)  # stop warning about repeating attributes
+  dat = dplyr::select(dat, geometry)  # stop warning about repeating attributes
   dat = sf::st_cast(dat,"LINESTRING")
 
   s = function(x){
@@ -106,7 +106,7 @@ midlines_smooth = function(x, width = 3){
 midlines_dedensify = function(x, density){
 
   x = midlines_group(x)
-  x = x %>% dplyr::select(geometry)
+  x = dplyr::select(x, geometry)
   ls = sf::st_cast(x,"LINESTRING")
   ls$line_id = 1:nrow(ls)
 

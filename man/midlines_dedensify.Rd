@@ -12,7 +12,7 @@ midlines_dedensify(x, density)
 \item{density}{is the desired distance between points. This is passed to \code{\link[sf]{st_line_sample}}}
 }
 \description{
-Without modifying the nodes where lines meet, the lines between those nodes have their points reduced to de-densify. This might be useful to reduce the size of the line collection. The intention is that a high density of points can be used to estimate the midlines but this can be reduced if desired. The dataset of ungrouped lines is returned.
+Without modifying the nodes where lines meet, the midlines between these nodes have their number of points reduced (de-densified). This might be useful to reduce the size of the line collection. The intention is that a high density of points can be used to estimate the midlines but this can be reduced if desired. The dataset of ungrouped lines is returned.
 }
 \examples{
 library(sf)

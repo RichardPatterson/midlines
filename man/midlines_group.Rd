@@ -2,7 +2,7 @@
 % Please edit documentation in R/midlines_refine.R
 \name{midlines_group}
 \alias{midlines_group}
-\title{Groups lines into multilinestring of clusters of lines which are all contiguous.}
+\title{Groups line segments into contiguous groups, returns these as multilinestrings.}
 \usage{
 midlines_group(x)
 }
@@ -10,5 +10,5 @@ midlines_group(x)
 \item{x}{an sf linestring or collection of linestrings}
 }
 \description{
-Groups lines into multilinestring of clusters of lines which are all contiguous.
+Groups line segments into contiguous groups, returns these as multilinestrings.
 }

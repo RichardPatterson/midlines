@@ -159,17 +159,22 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
 
   removed_mid_points = dplyr::bind_rows(removed_mid_points, .id = "cycle")
 
-    removed_lines = removed_mid_points %>%
-        dplyr::group_by(line_id) %>%
-        dplyr::summarise(do_union = FALSE) %>%
-        sf::st_cast("LINESTRING") %>%
-        dplyr::mutate(removed_flag = factor(1))
+  removed_lines = dplyr::mutate(
+    sf::st_cast(
+      dplyr::summarise(
+        dplyr::group_by(
+          removed_mid_points,line_id),
+        do_union = FALSE) ,
+      "LINESTRING"),
+    removed_flag = factor(1))
 
-    trimmed_lines = trimmed_mid_points %>%
-        dplyr::group_by(line_id) %>%
-        dplyr::summarise(do_union = FALSE) %>%
-        sf::st_cast("LINESTRING") %>%
-      dplyr::mutate(removed_flag = factor(0))
+  trimmed_lines = dplyr::mutate(
+    sf::st_cast(
+      dplyr::summarise(
+        dplyr::group_by(trimmed_mid_points, line_id),
+        do_union = FALSE),
+      "LINESTRING"),
+    removed_flag = factor(0))
 
     rbind(trimmed_lines, removed_lines)
 

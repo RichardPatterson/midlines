@@ -9,17 +9,23 @@ midlines_check(x, n_removed = NULL, length = NULL, border_line = NULL)
 \arguments{
 \item{x}{an sf linestring collection. Intended to be passed from the output of \code{\link{midlines_clean}}}
 
-\item{n_removed}{a contiguous group of removed lines of this number will be un-flagged for removal}
+\item{n_removed}{a contiguous group of n_removed or more line segments will be un-flagged}
 
-\item{length}{a contiguous group of removed lines of more than length will be un-flagged for removal}
+\item{length}{a contiguous group of line segment of greater than specified length will be un-flagged}
 
-\item{border_line}{an sf linestring forming the exterior border of the area of interest (see below). A contiguous group of removed lines intersecting with this line will be un-flagged for removal}
+\item{border_line}{an sf linestring forming the exterior border of the area of interest (see below). A contiguous group of removed lines intersecting with this line will be un-flagged}
 }
 \description{
-Polygon midlines estimated by Voronoi tessellation results in extraneous additional lines which need to be removed. Following the flagging of extraneous lines using \code{\link{midlines_clean}}, this function can be used to filter extraneous lines from those wrongly flagged.
+Polygon midlines estimated by Voronoi tessellation results in extraneous additional lines which need to be removed. Following the flagging of potentially extraneous line segments using \code{\link{midlines_clean}}, this function can be used to filter extraneous line segments from those wrongly flagged. In reality it creates another flag variable (flagged2!), which dulpicates the original flagged variable but unflags those deemed to be wrongly flagged.
 }
 \details{
-Intended to take the output of \code{\link{midlines_clean}}, this function will use three criteria to identify lines flagged for removal which might form part of the intended midlines. If n_removed corresponds to the parameter of \code{\link{midlines_clean}} of the same name, it will identify lines forming a contiguous group of >=n_removed, i.e. sequential removal of end lines did not result in meeting another branch in the line. Removed based on length is grounded in extraneous lines often being very short and complicated geometries. Contiguous groups of lines longer than the specified length will be un-flagged for removal. The appropriate length will depend on the distance between points on the polygon used to generate the midlines, which in turn can be manipulated with the dfMaxLength option of \code{\link{midlines_draw}}. Trial and error may be required to identify the optimal lengths. border_line can be used, as with \code{\link{midlines_draw}} and \code{\link{midlines_clean}} to ensure that any lines which formed a contiguous group intersecting the specified border_line will be un-flagged for removal.
+Intended to take the output of \code{\link{midlines_clean}}, this function will use three criteria to attempt to identify line segments wrongly flagged for removal.
+
+First, when flagged line segments are aggregated into contiguous groups, the number of line segments can be used to unflag gruops with >= n_removed line segments. It is expected (but not required) that n_removed is specified  to match the same parameter used with \code{\link{midlines_clean}}. Using this option assumes that extraneous lines are relatively short and made of fewer line segments that the desired midline.
+
+Second, unflagging line segments based on length of the contiguous groups also assumes that extraneous lines are shorter the the desired midline. Contiguous groups of lines longer than the specified length will be un-flagged. The appropriate length will depend on the distance between points on the polygon used to generate the midlines, which in turn can be manipulated with the dfMaxLength option of \code{\link{midlines_draw}}. Trial and error may be required to identify the optimal lengths.
+
+Third is specifying a border_line, which in line with the same parameter in \code{\link{midlines_draw}} and \code{\link{midlines_clean}} is an sf linestring specifing an area of interest so line segments which comprise part of a contiguous group intersecting the specified border_line will be un-flagged.
 }
 \examples{
 library(sf)

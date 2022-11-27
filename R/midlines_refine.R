@@ -30,10 +30,11 @@ midlines_group = function(x) {
     l = l+1
   }
 
-  multilines = lines %>%
-    dplyr::group_by(group_id) %>%
-    dplyr::summarise(do_union = FALSE) %>%
-    sf::st_cast("MULTILINESTRING")
+  multilines = sf::st_cast(
+    dplyr::summarise(
+      dplyr::group_by(lines, group_id),
+      do_union = FALSE)
+    ,"MULTILINESTRING")
 
   multilines$n_lines =lengths(lapply(multilines$geometry, unlist))/4
   multilines$length = sf::st_length(multilines)
