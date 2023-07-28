@@ -1,6 +1,8 @@
 #' Removes small groups of lines
 #'
-#' Lines are removed if when groups into contiguous clusters the total length of the cluster is less that length. The dataset of ungrouped lines is returned.
+#' Lines are removed if, when grouped into contiguous groups, the total length of the cluster is less the specified length. The dataset of ungrouped lines is returned.
+#'
+#' Unlike other functions in this package, `midlines-debit` will remove these line segments, rather than creating a flag variable.
 #'
 #' @param x a feature collection of sf linestrings. The input is intended to be the output of \code{\link{midlines_clean}}
 #' @param length the length below which groups of lines will be removed
@@ -16,7 +18,7 @@ midlines_debit = function(x, length) {
 
 }
 
-#' Used a rolling mean to smooth midlines
+#' Uses a rolling mean to smooth midlines
 #'
 #' Uses \code{zoo{rollapply}} to smooth lines, while keeping nodes where lines meet unchanged. The dataset of ungrouped lines is returned.
 #'
@@ -40,7 +42,7 @@ midlines_debit = function(x, length) {
 midlines_smooth = function(x, width = 3){
 
   dat = midlines_group(x)
-  dat = dat %>% dplyr::select(geometry)  # stop warning about repeating attributes
+  dat = dplyr::select(dat, geometry)  # stop warning about repeating attributes
   dat = sf::st_cast(dat,"LINESTRING")
 
   s = function(x){
@@ -78,14 +80,11 @@ midlines_smooth = function(x, width = 3){
   return(smoothed)
 }
 
-#smooth(linestrings)
-
-
 
 
 #' Removes points on lines between nodes
 #'
-#' Without modifying the nodes where lines meet, the lines between have points removed to de-densify. This might be useful to reduce the size of the line collection. The intention is that a high density of points can be used to estiamte the midlines but this can be reduced if desired. The dataset of ungrouped lines is returned.
+#' Without modifying the nodes where lines meet, the midlines between these nodes have their number of points reduced (de-densified). This might be useful to reduce the size of the line collection. The intention is that a high density of points can be used to estimate the midlines but this can be reduced if desired. The dataset of ungrouped lines is returned.
 #'
 #' @param x a feature collection of sf linestrings. The input is intended to be the output of \code{\link{midlines_clean}}
 #' @param density is the desired distance between points. This is passed to \code{\link[sf]{st_line_sample}}
@@ -107,7 +106,7 @@ midlines_smooth = function(x, width = 3){
 midlines_dedensify = function(x, density){
 
   x = midlines_group(x)
-  x = x %>% dplyr::select(geometry)
+  x = dplyr::select(x, geometry)
   ls = sf::st_cast(x,"LINESTRING")
   ls$line_id = 1:nrow(ls)
 

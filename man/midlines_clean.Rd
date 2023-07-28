@@ -2,7 +2,7 @@
 % Please edit documentation in R/midlines_functions.R
 \name{midlines_clean}
 \alias{midlines_clean}
-\title{Aims to clean extraneous lines from estimated midlines}
+\title{Aims to identify extraneous lines and the desired midlines}
 \usage{
 midlines_clean(x, n_removed = 1, border_line = NULL)
 }
@@ -14,12 +14,14 @@ midlines_clean(x, n_removed = 1, border_line = NULL)
 \item{border_line}{an sf linestring forming the exterior border of the area of interest (see below)}
 }
 \description{
-Intended for use following \code{\link{midlines_draw}} which uses Voronoi tessellation to estimate polygon midlines. The Voronoi tessellation results in extraneous lines, in addition to the intended midlines. This function aims to remove those lines.
+Intended for use following \code{\link{midlines_draw}} which uses Voronoi tessellation to estimate polygon midlines. The Voronoi tessellation results in unwanted side chains, in addition to the intended midlines. This function aims to identify those lines.
 }
 \details{
-Extraneous lines are often short deadends protruding from the intended midlines. This function identifies these lines by identifying line ends and flagging them (with the addition of a 'flag' variable). The process iterates through several cycles of line end identification with the number of cycles specified by the option n_removed. It is likely that some of the intended midlines will also be flagged, it their ends. All lines are returned so that the user can clearly see which lines have been flagged and all lines can then be passed to \code{\link{midlines_check}} which should enable the midlines which have been flagged to be differentiated from the extraneous lines. Depending on the specific use, it may be best to use this function (\code{\link{midlines_check}}) more than once.
+Unwanted short side branches that are produced during midlines estimation can be identified by specifying the number of line segments to be removed from the end of each line, with the \code{n_removed} option. Some experimentation might be required to identify the number of line segments that will result in the removal of all unwanted side branches. \code{midlines-check} does not remove line segments but identifies those at line ends with a binary \code{removed_flag} variable so they can be examined and deleted by the user as required.
 
-The border_lines option preemptively prevents lines being flagged if they intersect with a boarder defined by an sf linestring. This might be useful if the border intersects with the extremities of the midlines to prevent their being flagged for removal.
+If necessary, all lines can then be passed to \code{\link{midlines_check}} to unflag wrongly flagged line ends. Depending on the specific use, it may be best to use this function (\code{\link{midlines_check}}) more than once.
+
+The border_lines option prevents lines being flagged if they intersect with a boarder defined by an sf linestring. This might be useful if the border intersects with the extremities of the desired midlines to prevent their being flagged for removal.
 }
 \examples{
 library(sf)

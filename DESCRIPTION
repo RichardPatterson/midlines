@@ -16,10 +16,12 @@ RoxygenNote: 7.1.1
 Imports: 
     sf,
     dplyr,
-    units,
     zoo,
-    lwgeom,
-    magrittr,
-    nngeo
+    lwgeom
 Depends: 
     R (>= 2.10)
+Suggests: 
+    knitr,
+    rmarkdown,
+    units
+VignetteBuilder: knitr
