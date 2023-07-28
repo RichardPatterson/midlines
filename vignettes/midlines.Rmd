@@ -1,15 +1,16 @@
 ---
-output: github_document
+title: "midlines"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{midlines}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  comment = "#>"
 )
 ```
 
@@ -166,7 +167,7 @@ The lack of lines is due to the narrowness of the channel, or more precisely, th
 plot(side1)
 plot(bbox_line_s, add = TRUE)
 
-m_s1 = midlines_draw(side1, dfMaxLength = set_units(8,"m"), border_line = bbox_line_s)
+m_s1 = midlines_draw(side1, dfMaxLength = units::set_units(8,"m"), border_line = bbox_line_s)
 #plot(ml2$geometry, add = TRUE, col = "BLUE")
 
 # using the border_line to prevent removal of lines of interest

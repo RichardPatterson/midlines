@@ -41,6 +41,7 @@ copyright is retained by OpenStreetMap contributors.
 # Load libraries
 library(midlines)
 library(sf)
+#> Warning: package 'sf' was built under R version 4.2.2
 library(units)
 
 plot(thames)
@@ -61,83 +62,62 @@ plot(m1$geometry, col = m1$line_id, add = TRUE)
 
 <img src="man/figures/README-draw-1.png" width="100%" />
 
-We can see the midline has been drawn but that there are many undesired
-extraneous lines, especially where the banks of the river are not a
-smooth curve. To understand why, we need to know what `midline_draw` has
-done. `midlines_draw` used the [`sf`](https://github.com/r-spatial/sf)
-function st_voronoi to perform an
+We can see the midline has been drawn but there are many unwanted short
+side branches, especially where the banks of the river are not smooth.
+To understand why, we need to know what `midline_draw` has done.
+`midlines_draw` used the [`sf`](https://github.com/r-spatial/sf)
+function `st_voronoi` to perform an
 [`Voronoi`](https://en.wikipedia.org/wiki/Voronoi_diagram) tessellation
 and then removed all line segments not entirely within the polygon.
-`midlines` offers a few options to try remove these extraneous lines,
-but it is possible you can prevent them by manipulating the location and
-density of the points on the original polygon, see sections on
-[gaps](zig-zags-and-gaps) and [zig-zagging](#zig-zagging).
+`midlines` can help remove these unwanted side branches, but it is
+possible you can prevent their creation (see sections on [border
+lines](boarder-line) [gaps](zig-zags-and-gaps) and
+[zig-zagging](#zig-zagging)).
 
 ## Cleaning the midline
 
-There are several approaches to removing unwanted line segments without
-losing any of the desired midline and the specific methods required and
-the order of execution will vary according on the nature of the input
-polygon and user requirements.
-
-The `midlines_clean` function identifies (flags) potentially extraneous
-lines, but does not remove them. This enables the investigation of the
-identified lines and complete control over which lines are removed. In
-its most basic form `midlines_clean` simply identifies those line
-segments which form a dead-end, i.e. which are connected to another line
-at only one end.
+To remove the unwanted branches, the line segments at the end of a line
+can be identified using a binary variable (`removed_flag`) added to the
+dataset with the `midlines_clean` function. The flagged line segments
+can be explored and removed as required. Specifying the `n_removed`
+option will flag that number of line segments from the end of each line.
+Previous experimentation indicated that the unwanted branches in this
+example are made up of ≤ 4 line segments.
 
 ``` r
-# adds a "removed_flag" column to input identifying dead-end line segments
-m2 = midlines_clean(m1)
+# remove 4 line segments from the end of each line
+m2 = midlines_clean(m1, n_removed = 4)
 
-# plot with flagged segments in red and the clean(er) midline in blue
-plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag], add = TRUE)
+# plot flagged (red) and unflagged (blue) line segments
+plot(m2$geometry, col = c("BLUE", "RED")[m2$removed_flag])
 ```
 
 <img src="man/figures/README-clean1-1.png" width="100%" />
 
-Many of the extraneous lines have been flagged, but not them all. It is
-possible to drop the flagged segments and repeat this multiple times to
-remove dead-ends one step at a time (and this might be a good idea to
-explore your data in the first instance). However, the cycle can be
-repeated multiple times using the n_removed option.
-
 ``` r
-# four cycles of dead-end removal
-m2 = midlines_clean(m1, n_removed = 4)
 
-# plot only the clean midline
+# plot only the cleaned midline
 plot(m2$geometry[m2$removed_flag==0], col = "BLUE")
 ```
 
-<img src="man/figures/README-clean2-1.png" width="100%" />
-
-This yields a reasonable estimate of the midline of the main channel of
-the river, although the side branches (which may or may not be required)
-were not consistently handled (see below for more).
+<img src="man/figures/README-clean1-2.png" width="100%" />
 
 ## Retaining the ends of the midline
 
-`midlines_clean` removed dead-ends including the extremities of the
-desired midline and possibly also those of side branches that might be
-of interest. The trade off between removing extraneous line segments and
-losing bits of the desired midlines will depend on the specific
-requirements, but a few options are available.
+In addition to the unwanted side branches, `midlines_clean` flagged for
+removal the line segments at the end of the midline itself. If losing
+the ends of the midline is a problem, `midlines_check` can unflag some
+line segments.
 
-### Number of line segments
-
-Using the `n_removed` option to flag multiple cycles of dead-ends allows
-the line segments to be grouped with those they intersect with to
-identify contiguous groups. The number of line segments in each group
-might indicate whether the segments are extraneous. Extraneous side
-chains that are substantially shorter than the desired midline can be
-removed in this way. For example, if 5 cycles of removal are specified
-then the assumption is that groups with 5 or more lines segments are
-part of the derired midlines and of interest to the user. To
-demonstrate, the example above was satisfactorily cleaned with four
-cycles of removal, so if we specify five cycles and use midlines_check
-with the n_removed option, it will identify lines of 5 or more segments.
+As the unwanted side branches are short, we can unflag longer groups of
+flagged line segments. We know that the unwanted side branches contain ≤
+4 line segments, whereas the midlines itself is much longer. Therefore,
+if we remove up to 5 line segments, we know that any removed lines of 5
+or more line segments are not unwanted side chains but part of the
+midline. `midlines_check` takes as an input the output from
+`midlines_clean` and adds another binary variable (`removed_flag2`),
+which should flag the unwanted side chains but not the ends of the
+midlines.
 
 ``` r
 m2 = midlines_clean(m1, n_removed = 5)
@@ -150,80 +130,34 @@ plot(m3$geometry, col = c("BLUE", "RED")[m3$removed_flag2])
 plot(m3$geometry[m3$removed_flag==1 & m3$removed_flag2==0], col = "GREEN", add = TRUE)
 ```
 
-<img src="man/figures/README-n_removed-1.png" width="100%" /> The
-`midlines_check` function takes the output from `midlines_clean` and
-adds an additional variable unimaginatively named `removed_flag2`. With
-both the flag variables, the user can identify those line segments
-initially flagged for removal and then unflagged by `midlines_check`.
+<img src="man/figures/README-n_removed-1.png" width="100%" />
 
-We can see that now the ends of the main channel midline are restored
-but thatthe extraneous lines coming off the midline are still flagged
-for removal. This yields potentially unsatisfactory results when the
-there is branching at the extremities of the midline, as on the right of
-the plot above and also where small bit unconnected to the main channel
-are retained (although see [removing unwanted small bits of
-midlines](#removing-unwanted-small-bits-of-midlines) for other
-approaches to deal with these).
+The ends of the midline are restored (green) but the unwanted side
+branches are still flagged for removal (red). In addition to adding back
+longer lines based on the number of line segments, the `length` option
+can be used to specify a length (in
+[Units](https://r-quantities.github.io/units/)). In this example,
+specifying `length = set_units(230,"m")` gives the same results as
+`n_removed = 5`
 
-### Length
+There is a trade off between removing all unwanted side branches and
+retaining the desired midlines. Some experimentation might be required
+to get the desired results. In this case we’ve unflagged the forked
+midline on the right end of our river segment and also some small bits
+of unconnected line (although see [removing unwanted small bits of
+midlines](#removing-unwanted-small-bits-of-midlines).
 
-Groups of segments flagged for removal can also be identified based on
-the total length of the group, similar to the use of the number of
-segments above. This can be useful especially where the extraneous lines
-contain many very small line segments which can be generated with
-Voronoi tessellation in small or complex polygons. In the example, a
-length of 230 metres results in a similar same configuration as
-unflagging those with five or more line segments.
+## Border line
 
-``` r
-m2 = midlines_clean(m1, n_removed = 5)
-m3 = midlines_check(m2, length = set_units(230,"m"))
-
-# plot initially flagged in red and remainder in blue
-plot(m3$geometry, col = c("BLUE", "RED")[m3$removed_flag2])
-
-# overlay those initially flagged but identified as being longer than 230 metres in green 
-plot(m3$geometry[m3$removed_flag==1 & m3$removed_flag2==0], col = "GREEN", add = TRUE)
-```
-
-<img src="man/figures/README-length-1.png" width="100%" />
-
-Although in this example using length and the number of segments yields
-the same results, depending on the shape and size of the polygon the
-different approaches might be better used individually or in
-combination.
-
-### Border line
-
-Specifying the field, or area, of interest is another way to control
-removal of side branches. This can be used to retain line ends that meet
-the the border of the area of interest. For example, the Eastern and
-Western extremities of our stretch of the river Thames can be identified
-so the ends of the desired midline are not removed.
+If there is a specific area of interest, this can be used to help
+control the estimation and cleaning of the midlines. This works best
+when the polygon used for estimation is larger than the area of actual
+interest. The border of the area of interest is specified as an sf
+linestring, as in this example.
 
 ``` r
-m2 = midlines_clean(m1, n_removed = 10)
-
 # generate a linestring marking the border
-bbox_line = st_cast(st_as_sfc(st_bbox(c(xmin = 535070, ymin = 177800, xmax = 542560, ymax = 181550), crs = 27700)), "LINESTRING")
-
-m3 = midlines_check(m2, border_line = bbox_line)
-
-plot(m3$geometry, col = c("BLUE", "RED")[m3$removed_flag2])
-plot(bbox_line, add = TRUE)
-```
-
-<img src="man/figures/README-border_line1-1.png" width="100%" />
-
-This works best when the area of interest is smaller than the original
-polygon. It is also possible to specify the border_line option with
-midlines_draw and midlines_clean, which crops out midline segments
-outside the area of interest and safes time by not flagging and
-unflagging those lines.
-
-``` r
-
-#bbox_line = st_cast(st_as_sfc(st_bbox(c(xmin = 535070, ymin = 177800, xmax = 542560, ymax = 181550), crs = 27700)), "LINESTRING")
+bbox_line = st_cast(st_as_sfc(st_bbox(c(xmin = 535070, ymin = 177800, xmax = 542560, ymax = 181550), crs = st_crs(thames))), "LINESTRING")
 
 m1 = midlines_draw(thames, border_line = bbox_line)
 #> Warning: attribute variables are assumed to be spatially constant throughout all
@@ -234,17 +168,26 @@ plot(m1$geometry, col = "BLUE", add = TRUE)
 plot(bbox_line, add = TRUE)
 ```
 
-<img src="man/figures/README-border_line2-1.png" width="100%" />
+<img src="man/figures/README-border_line-1.png" width="100%" />
+
+Specifying the boarder_line option in `midlines_clean` and
+`midlines_check` can also ensure the line ends that contact the boarder
+line are not flagged for removal.
 
 ``` r
+m2 = midlines_clean(m1, n_removed = 5)
+m3 = midlines_check(m2, border_line = bbox_line)
 
-m2 = midlines_clean(m1, n_removed = 5, border_line = bbox_line)
-m3 = midlines_check(m2, n_removed = 5, border_line = bbox_line)
-plot(m3$geometry, col = c("BLUE", "RED")[m3$removed_flag2])
+plot(m3$geometry[m3$removed_flag2 == 0], col = "BLUE"[m3$removed_flag2])
 plot(bbox_line, add = TRUE)
 ```
 
-<img src="man/figures/README-border_line2-2.png" width="100%" />
+<img src="man/figures/README-border_line1-1.png" width="100%" />
+
+It is also possible to specify the border_line option with midlines_draw
+and midlines_clean, which crops out midline segments outside the area of
+interest at the outset and safes time by not flagging and unflagging
+those lines.
 
 ## Gaps
 
@@ -257,9 +200,9 @@ midline in the left of the two side branches.
 
 ``` r
 # generate a polygon to focus on the left side channel(s)
-bbox_poly = st_as_sfc(st_bbox(c(xmin = 536070, ymin = 180700, xmax = 537800, ymax = 181850), crs = 27700))
+bbox_poly = st_as_sfc(st_bbox(c(xmin = 536070, ymin = 180700, xmax = 537800, ymax = 181850), crs = st_crs(thames)))
 # a slightly smaller area to use as a border line
-bbox_line_s = st_cast(st_as_sfc(st_bbox(c(xmin = 536120, ymin = 180760, xmax = 537750, ymax = 181800), crs = 27700)),"LINESTRING")
+bbox_line_s = st_cast(st_as_sfc(st_bbox(c(xmin = 536120, ymin = 180760, xmax = 537750, ymax = 181800), crs = st_crs(thames))),"LINESTRING")
 
 plot(thames)
 plot(bbox_poly, add = TRUE)
@@ -270,9 +213,8 @@ plot(bbox_poly, add = TRUE)
 ``` r
 # crop the larger thames polygon to the area we want
 side1 = st_intersection(thames, bbox_poly)
+
 plot(side1)
-
-
 plot(bbox_line_s, add = TRUE)
 
 # estimating midline of the original polygon
@@ -284,15 +226,14 @@ plot(m_s1$geometry, add = TRUE, col = "RED")
 
 <img src="man/figures/README-gaps2-1.png" width="100%" />
 
-The lack of lines is caused by the narrowness of the channel, or more
-precisely, it is the gaps between points in the polygon perimeter
-relative to the width of the polygon in this area. The gap between
-points that worked well for the wider main River Thames is insufficient
-to allow successful midline estimation in the narrow channel. The
-`midlines_draw` function has a `dfMaxLength` option to add additional
-points along straight lines at a maximum distance as specified. This
-argument is passed along to sf::st_segmentize so see that help file for
-more details.
+The lack of lines is due to the narrowness of the channel, or more
+precisely, the gaps between points in the polygon perimeter relative to
+the width of the polygon. The gap between points that was sufficient for
+the wider main River Thames is insufficient to allow successful midline
+estimation in the narrow channel. The `midlines_draw` function has a
+`dfMaxLength` option specify the maximum distance between points and to
+add additional points as required. This argument is passed to
+sf::st_segmentize so see that help file for more details.
 
 ``` r
 # some trial and error revealed 8 meters to be the optimal max length between points
@@ -312,8 +253,8 @@ plot(m_s2$geometry, col = c("BLUE", "RED")[m_s2$removed_flag], add = TRUE)
 <img src="man/figures/README-gaps3-1.png" width="100%" />
 
 Conversely, if the points on the perimeter are too dense and result in a
-very complicated tessellation then sf::st_line_sample might also be
-useful.
+very complicated tessellation or slow computations times then
+sf::st_line_sample might also be useful.
 
 ## Zig-zagging
 
@@ -333,10 +274,11 @@ plot(pts1, add = TRUE)
 plot(ml1$geometry, col = ml1$line_id, add = TRUE)
 ```
 
-<img src="man/figures/README-zig-zag1-1.png" width="100%" /> When the
-points on the polygon perimeter are offset, this results in the zig-zag
-pattern. One way to resolve this is to ensure that points are directly
-opposite one another on the polygon.
+<img src="man/figures/README-zig-zag1-1.png" width="100%" />
+
+When the points on the polygon perimeter are offset, this results in the
+zig-zag pattern. One way to resolve this is to ensure that points are
+directly opposite one another on the polygon.
 
 ``` r
 mat2 = matrix(c(0,0,2,0,4,0,6,0,8,0,10,0,12,0,12,2,12,2,10,2,8,2,6,2,4,2,2,2,0,2,0,0),ncol=2, byrow=TRUE) 
@@ -349,10 +291,11 @@ plot(pts2, add = TRUE)
 plot(ml2$geometry, col = ml2$line_id, add = TRUE)
 ```
 
-<img src="man/figures/README-zig-zag2-1.png" width="100%" /> However,
-its not always possible to control the points that make up the polygons
-of interest. Another option is to reduce the gap between the points so
-even though they are offset the zig-zag is less pronounced.
+<img src="man/figures/README-zig-zag2-1.png" width="100%" />
+
+However, its not always possible to control the points that make up the
+polygons of interest. Another option is to reduce the gap between the
+points so even though they are offset the zig-zag is less pronounced.
 
 ``` r
 mat3 = matrix(c(0,0,1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9,0,10,0,11,0,12,0,
@@ -374,9 +317,9 @@ midline of the right side channel.
 
 ``` r
 # generate a polygon to focus on the right side channel(s)
-bbox_poly = st_as_sfc(st_bbox(c(xmin = 538700, ymin = 180750, xmax = 539800, ymax = 181850), crs = 27700))
+bbox_poly = st_as_sfc(st_bbox(c(xmin = 538700, ymin = 180750, xmax = 539800, ymax = 181850), crs = st_crs(thames)))
 # a slightly smaller area to use as a border line
-bbox_line_s = st_cast(st_as_sfc(st_bbox(c(xmin = 538750, ymin = 180800, xmax = 539750, ymax = 181800), crs = 27700)),"LINESTRING")
+bbox_line_s = st_cast(st_as_sfc(st_bbox(c(xmin = 538750, ymin = 180800, xmax = 539750, ymax = 181800), crs = st_crs(thames))),"LINESTRING")
 
 plot(thames)
 plot(bbox_poly, add = TRUE)
@@ -434,7 +377,7 @@ plot(side2)
 plot(m_s2b$geometry, add = TRUE, col = "BLUE")
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 `midlines_smooth` will smooth lines in a network of midlines but it does
 not move the point where two or more lines join. The `width` option can

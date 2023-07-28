@@ -10,9 +10,9 @@
 #'
 #' Taking an sf polygon or feature collection of polygons, the function uses Voronoi tessellation to estimate the polygon midlines. Sufficient density of points are required on the perimeter of the polygon to facilitate the Voronoi tessellation. Large gaps between points can occur where perimeters have straight lines; the dfMaxLength option is used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf:geos_unary]{sf::st_segmentize()}}.
 #'
-#' The Voronoi tessellation is likely to lead to extraneous lines which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
+#' The Voronoi tessellation is likely to lead to unwanted side branches which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
 #'
-#' Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensure the midlines do not extend beyond this.
+#' Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensur midlines do not extend beyond this.
 #'
 #' @param x an sf polygon (or feature collection of polygons) within which to estimate the midline(s).
 #' @param border_line an sf linestring forming the exterior border of the area of interest.
@@ -68,9 +68,11 @@ midlines_draw = function(x, border_line = NULL, dfMaxLength = NULL){
 
 #' Aims to identify extraneous lines and the desired midlines
 #'
-#' Intended for use following \code{\link{midlines_draw}} which uses Voronoi tessellation to estimate polygon midlines. The Voronoi tessellation results in extraneous lines, in addition to the intended midlines. This function aims to identify those lines.
+#' Intended for use following \code{\link{midlines_draw}} which uses Voronoi tessellation to estimate polygon midlines. The Voronoi tessellation results in unwanted side chains, in addition to the intended midlines. This function aims to identify those lines.
 #'
-#' Extraneous lines are often short dead-ends protruding from the intended midlines. This function identifies these lines by identifying line ends and flagging them (with the addition of a 'flagged' variable). The process can iterate through several cycles of line end identification with the number of cycles specified by the option n_removed. It is likely that some of the intended midlines will also be flagged, at their ends. All lines are returned so that the user can examine which lines have been flagged. If necessary, all lines can then be passed to \code{\link{midlines_check}} to unflag some line wrong flagged as extraneous. Depending on the specific use, it may be best to use this function (\code{\link{midlines_check}}) more than once.
+#' Unwanted short side branches that are produced during midlines estimation can be identified by specifying the number of line segments to be removed from the end of each line, with the `n_removed` option. Some experimentation might be required to identify the number of line segments that will result in the removal of all unwanted side branches. `midlines-check` does not remove line segments but identifies those at line ends with a binary `removed_flag` variable so they can be examined and deleted by the user as required.
+#'
+#' If necessary, all lines can then be passed to \code{\link{midlines_check}} to unflag wrongly flagged line ends. Depending on the specific use, it may be best to use this function (\code{\link{midlines_check}}) more than once.
 #'
 #' The border_lines option prevents lines being flagged if they intersect with a boarder defined by an sf linestring. This might be useful if the border intersects with the extremities of the desired midlines to prevent their being flagged for removal.
 #'

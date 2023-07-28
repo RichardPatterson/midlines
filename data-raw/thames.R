@@ -65,6 +65,11 @@ plot(thames, col = "red")
 
 # 2) removing does't work so trying this to get rid of the offending symbols https://github.com/r-spatial/sf/issues/1341#issuecomment-1120284345
 #st_crs(thames)$wkt <- gsub("°|º", "\\\u00b0", st_crs(thames)$wkt)
+#st_crs(thames)$input <- gsub("°|º", "\\\u00b0", st_crs(thames)$input)
+
+# 3) this time make it not even an sf object
+#thames = unlist(thames$geometry)
+
 
 save(thames, file = "data-raw/thames.RData")
 

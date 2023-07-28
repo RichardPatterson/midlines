@@ -1,6 +1,6 @@
 #' Removes small groups of lines
 #'
-#' Lines are removed if, when grouped into contiguous clusters, the total length of the cluster is less the specified length. The dataset of ungrouped lines is returned.
+#' Lines are removed if, when grouped into contiguous groups, the total length of the cluster is less the specified length. The dataset of ungrouped lines is returned.
 #'
 #' Unlike other functions in this package, `midlines-debit` will remove these line segments, rather than creating a flag variable.
 #'

@@ -19,9 +19,9 @@ Uses Voronoi tessellation to estimate the midlines of one or more sf polygons
 \details{
 Taking an sf polygon or feature collection of polygons, the function uses Voronoi tessellation to estimate the polygon midlines. Sufficient density of points are required on the perimeter of the polygon to facilitate the Voronoi tessellation. Large gaps between points can occur where perimeters have straight lines; the dfMaxLength option is used to stipulate the maximum distance between points and add points where required. This argument is passed to \code{\link[sf:geos_unary]{sf::st_segmentize()}}.
 
-The Voronoi tessellation is likely to lead to extraneous lines which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
+The Voronoi tessellation is likely to lead to unwanted side branches which do not form part of the intended midline(s). Additional functions \code{\link{midlines_clean}} and \code{\link{midlines_check}} will hopefully help to deal with these.
 
-Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensure the midlines do not extend beyond this.
+Where there is a region of interest defined by an sf linestring, e.g. of a bounding box, this can be specified to ensur midlines do not extend beyond this.
 }
 \examples{
 library(sf)
