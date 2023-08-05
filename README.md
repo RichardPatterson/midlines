@@ -18,7 +18,8 @@ welcome.
 
 ## Installation
 
-You can install the package from [GitHub](https://github.com/) with:
+You can install the current version of the package from
+[GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
@@ -41,7 +42,6 @@ copyright is retained by OpenStreetMap contributors.
 # Load libraries
 library(midlines)
 library(sf)
-#> Warning: package 'sf' was built under R version 4.2.2
 library(units)
 
 plot(thames)
