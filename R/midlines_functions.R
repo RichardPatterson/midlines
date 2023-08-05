@@ -119,30 +119,41 @@ midlines_draw = function(x, border_line = NULL, dfMaxLength = NULL){
 #' @export
 midlines_clean = function(x, n_removed = 1, border_line = NULL){
 
+  # Does the input have a line_id column and does it contain unique values.
+  line_id_present = TRUE
+
+  if(!("line_id" %in% colnames(x))) {
+    x$line_id = seq_len(nrow(x))
+    line_id_present = FALSE
+  } else if  (any(duplicated(x$line_id))){
+    stop("If x contains a variable named line_id, it must be unique across observations")
+  }
+  line_id = x$line_id
+
+  mid_points = st_sf(c(lwgeom::st_startpoint(x),
+                       lwgeom::st_endpoint(x)))
+  sf::st_geometry(mid_points) = "geometry"
+
+  mid_points$line_id = rep(x$line_id, 2)
+  mid_points$point_id = 1:nrow(mid_points)
+
   # Identify those edges that intersect with the borderline (if specified)
   if(!(is.null(border_line))) {
-    x$border_intersect = as.vector(sf::st_intersects(x$geometry, border_line , sparse = FALSE))
+    mid_points$border_intersect = rep(
+      border_intersect = as.vector(sf::st_intersects(x$geometry, border_line , sparse = FALSE)),
+      2)
   }
 
-  # to prevent the warning about repeat attributes for all sub-geometries
-  sf::st_agr(x) = "constant"
-
-  mid_points = sf::st_cast(x,"POINT")
-
-
-  mid_points$point_id = 1:nrow(mid_points)
 
   removed_mid_points = vector("list", n_removed)
 
   for(i in 1:n_removed) {
     if (i == 1) trimmed_mid_points = mid_points
 
-    #trimmed_mid_points$dead_point = lengths(sf::st_intersects(trimmed_mid_points))==1
     trimmed_mid_points$dead_point = !(
       duplicated(trimmed_mid_points$geometry) |
         duplicated(trimmed_mid_points$geometry, fromLast = TRUE)
     )
-    #table(trimmed_mid_points$dead_point)
 
     if(!(is.null(border_line))) {
       trimmed_mid_points$dead_point[trimmed_mid_points$border_intersect==TRUE] = FALSE
@@ -151,36 +162,33 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
     ls =trimmed_mid_points$line_id[trimmed_mid_points$dead_point]
     trimmed_mid_points$dead_line = trimmed_mid_points$line_id %in% ls
 
-
     removed_mid_points[[i]] = trimmed_mid_points[trimmed_mid_points$dead_line == TRUE,]
 
     trimmed_mid_points =trimmed_mid_points[trimmed_mid_points$dead_line == FALSE,]
 
-
   }#for loop
 
-  removed_mid_points = dplyr::bind_rows(removed_mid_points, .id = "cycle")
+  removed_mid_points = dplyr::bind_rows(removed_mid_points)
 
-  removed_lines = dplyr::mutate(
-    sf::st_cast(
-      dplyr::summarise(
-        dplyr::group_by(
-          removed_mid_points,line_id),
-        do_union = FALSE) ,
-      "LINESTRING"),
-    removed_flag = factor(1))
+  removed_mid_points$removed_flag = factor(1)
+  trimmed_mid_points$removed_flag = factor(0)
 
-  trimmed_lines = dplyr::mutate(
-    sf::st_cast(
-      dplyr::summarise(
-        dplyr::group_by(trimmed_mid_points, line_id),
-        do_union = FALSE),
-      "LINESTRING"),
-    removed_flag = factor(0))
+  trimmed_points = rbind(trimmed_mid_points, removed_mid_points)
 
-    rbind(trimmed_lines, removed_lines)
+  rem_flag = aggregate(removed_flag ~ line_id ,
+                       sf::st_drop_geometry(trimmed_points),
+                       do_union = FALSE, FUN = unique)
 
+  return = dplyr::inner_join(x, rem_flag, by = "line_id")
+
+  # Remove line_id var if it wasn't present in input (x)
+  if(!line_id_present){
+    return = subset(return, select = -c(line_id))
+  }
+
+  return
 }
+
 
 group_id = line_id = geometry = NULL
 
