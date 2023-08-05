@@ -24,7 +24,7 @@ The goal of `midlines` is to estimate the midline of one or more polygons, takin
 
 ## Installation
 
-You can install the package from [GitHub](https://github.com/) with:
+You can install the current version of the package from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")

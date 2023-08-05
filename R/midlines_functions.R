@@ -130,7 +130,7 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
   }
   line_id = x$line_id
 
-  mid_points = st_sf(c(lwgeom::st_startpoint(x),
+  mid_points = sf::st_sf(c(lwgeom::st_startpoint(x),
                        lwgeom::st_endpoint(x)))
   sf::st_geometry(mid_points) = "geometry"
 
@@ -175,9 +175,9 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
 
   trimmed_points = rbind(trimmed_mid_points, removed_mid_points)
 
-  rem_flag = aggregate(removed_flag ~ line_id ,
+  rem_flag = stats::aggregate(removed_flag ~ line_id ,
                        sf::st_drop_geometry(trimmed_points),
-                       do_union = FALSE, FUN = unique)
+                       FUN = unique)
 
   return = dplyr::inner_join(x, rem_flag, by = "line_id")
 

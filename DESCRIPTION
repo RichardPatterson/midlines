@@ -1,6 +1,6 @@
 Package: midlines
 Title: Estimate Polygon Midlines
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     person(given = "Richard",
            family = "Patterson",
@@ -17,7 +17,8 @@ Imports:
     sf,
     dplyr,
     zoo,
-    lwgeom
+    lwgeom,
+    stats
 Depends: 
     R (>= 2.10)
 Suggests: 
