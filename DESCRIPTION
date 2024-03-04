@@ -12,13 +12,13 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 Imports: 
     sf,
-    dplyr,
     zoo,
     lwgeom,
-    stats
+    stats,
+    igraph
 Depends: 
     R (>= 2.10)
 Suggests: 
