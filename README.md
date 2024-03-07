@@ -42,9 +42,11 @@ copyright is retained by OpenStreetMap contributors.
 # Load libraries
 library(midlines)
 library(sf)
+#> Warning: package 'sf' was built under R version 4.3.3
 library(units)
+#> Warning: package 'units' was built under R version 4.3.3
 
-plot(thames)
+plot(thames$geometry)
 ```
 
 <img src="man/figures/README-thames-1.png" width="100%" />
@@ -53,6 +55,7 @@ To estimate the midline of this stretch of the Thames, use the
 `midline_draw` function.
 
 ``` r
+
 # create a sf collection for the midline
 m1 = midlines_draw(thames)
 
@@ -160,10 +163,10 @@ linestring, as in this example.
 bbox_line = st_cast(st_as_sfc(st_bbox(c(xmin = 535070, ymin = 177800, xmax = 542560, ymax = 181550), crs = st_crs(thames))), "LINESTRING")
 
 m1 = midlines_draw(thames, border_line = bbox_line)
-#> Warning: attribute variables are assumed to be spatially constant throughout all
-#> geometries
+#> Warning: attribute variables are assumed to be spatially constant throughout
+#> all geometries
 
-plot(thames)
+plot(thames$geometry)
 plot(m1$geometry, col = "BLUE", add = TRUE)
 plot(bbox_line, add = TRUE)
 ```
@@ -204,7 +207,7 @@ bbox_poly = st_as_sfc(st_bbox(c(xmin = 536070, ymin = 180700, xmax = 537800, yma
 # a slightly smaller area to use as a border line
 bbox_line_s = st_cast(st_as_sfc(st_bbox(c(xmin = 536120, ymin = 180760, xmax = 537750, ymax = 181800), crs = st_crs(thames))),"LINESTRING")
 
-plot(thames)
+plot(thames$geometry)
 plot(bbox_poly, add = TRUE)
 ```
 
@@ -214,13 +217,13 @@ plot(bbox_poly, add = TRUE)
 # crop the larger thames polygon to the area we want
 side1 = st_intersection(thames, bbox_poly)
 
-plot(side1)
+plot(side1$geometry)
 plot(bbox_line_s, add = TRUE)
 
 # estimating midline of the original polygon
 m_s1 = midlines_draw(side1, border_line = bbox_line_s)
-#> Warning: attribute variables are assumed to be spatially constant throughout all
-#> geometries
+#> Warning: attribute variables are assumed to be spatially constant throughout
+#> all geometries
 plot(m_s1$geometry, add = TRUE, col = "RED")
 ```
 
@@ -237,12 +240,12 @@ sf::st_segmentize so see that help file for more details.
 
 ``` r
 # some trial and error revealed 8 meters to be the optimal max length between points
-plot(side1)
+plot(side1$geometry)
 plot(bbox_line_s, add = TRUE)
 
 m_s1 = midlines_draw(side1, dfMaxLength = set_units(8,"m"), border_line = bbox_line_s)
-#> Warning: attribute variables are assumed to be spatially constant throughout all
-#> geometries
+#> Warning: attribute variables are assumed to be spatially constant throughout
+#> all geometries
 #plot(ml2$geometry, add = TRUE, col = "BLUE")
 
 # using the border_line to prevent removal of lines of interest
@@ -253,7 +256,7 @@ plot(m_s2$geometry, col = c("BLUE", "RED")[m_s2$removed_flag], add = TRUE)
 <img src="man/figures/README-gaps3-1.png" width="100%" />
 
 Conversely, if the points on the perimeter are too dense and result in a
-very complicated tessellation or slow computations times then
+very complicated tessellation or slow computation times, then
 sf::st_line_sample might also be useful.
 
 ## Zig-zagging
@@ -321,7 +324,7 @@ bbox_poly = st_as_sfc(st_bbox(c(xmin = 538700, ymin = 180750, xmax = 539800, yma
 # a slightly smaller area to use as a border line
 bbox_line_s = st_cast(st_as_sfc(st_bbox(c(xmin = 538750, ymin = 180800, xmax = 539750, ymax = 181800), crs = st_crs(thames))),"LINESTRING")
 
-plot(thames)
+plot(thames$geometry)
 plot(bbox_poly, add = TRUE)
 ```
 
@@ -331,15 +334,15 @@ plot(bbox_poly, add = TRUE)
 
 # crop the larger thames polygon to the area we want
 side2 = st_intersection(thames,bbox_poly)
-plot(side2)
+plot(side2$geometry)
 
 
 plot(bbox_line_s, add = TRUE)
 
 # estimating midline of the original polygon
 m_s1 = midlines_draw(side2, border_line = bbox_line_s)
-#> Warning: attribute variables are assumed to be spatially constant throughout all
-#> geometries
+#> Warning: attribute variables are assumed to be spatially constant throughout
+#> all geometries
 plot(ml1$geometry, add = TRUE, col = "RED")
 ```
 
@@ -349,10 +352,10 @@ One option would be to use the dfMaxLength option with midlines_draw
 like we did on the left side channel.
 
 ``` r
-plot(side2)
+plot(side2$geometry)
 m_s1a = midlines_draw(side2, border_line = bbox_line_s, dfMaxLength = set_units(8,"m"))
-#> Warning: attribute variables are assumed to be spatially constant throughout all
-#> geometries
+#> Warning: attribute variables are assumed to be spatially constant throughout
+#> all geometries
 
 # clean this to remove extraneous lines
 m_s2a = midlines_clean(m_s1a, border_line = bbox_line_s, n_removed = 5)
@@ -373,7 +376,7 @@ basically a wrapper round the rollapply function in the excellent
 # smooth with a rolling average 
 m_s2b = midlines_smooth(m_s1)
 
-plot(side2)
+plot(side2$geometry)
 plot(m_s2b$geometry, add = TRUE, col = "BLUE")
 ```
 
@@ -413,7 +416,7 @@ plot(m2$geometry)
 
 In addition to manipulating the density of points on the perimeter of
 the initial polygon, it is sometimes desirable to manipulate the density
-of points the form the midline. This results in fewer longer line
+of points that form the midline. This results in fewer longer line
 segments, rather than many shorter line segments. This can be done using
 `midlines_dedensify` either before or after cleaning. Like with the
 `midlines_smooth` function, the points where lines join are not affected

@@ -62,25 +62,20 @@ midlines_smooth = function(x, width = 3){
 
   }
 
-  nrow = nrow(dat)
+  smoothed = sf::st_sfc(lapply(seq_len(nrow(dat)), s))
 
-  smoothed = sf::st_as_sf(sf::st_as_sfc(lapply(1:nrow, s)))
+  smoothed = sf::st_sf(geometry =
+                          sf::st_collection_extract(
+                            lwgeom::st_split(smoothed,
+                                             sf::st_union(
+                                               sf::st_cast(smoothed, "MULTIPOINT"))), type = "LINESTRING"),
+                        crs = sf::st_crs(x))
 
-  smoothed = sf::st_as_sf(
-    sf::st_collection_extract(
-      lwgeom::st_split(smoothed$x,
-               sf::st_union(
-                 sf::st_cast(smoothed, "MULTIPOINT"))), type = "LINESTRING"))
-
-  colnames(smoothed)[colnames(smoothed) == "x"] = "geometry"
-  sf::st_geometry(smoothed) <- "geometry"
-
-  smoothed$line_id = 1:nrow(smoothed)
-
-  sf::st_crs(smoothed) = sf::st_crs(dat)
+  smoothed$line_id = seq_len(nrow(smoothed))
 
   return(smoothed)
-}
+
+  }
 
 
 
