@@ -436,6 +436,24 @@ perimeter of the river Thames polygon as the starting point.
 
 <img src="man/figures/README-voronoi-1.png" width="100%" />
 
+## Another use case
+
+An alternative use case is to merge two versions of a road network that
+are measured differently and therefore do not exactly match. Use buffers
+to creating a polygon around both networks and then estimate the midline
+of this polygon to give a combined network against which each can be
+compared. See this
+[blog](https://richardpatterson.github.io/2023/08/06/network_merge.html)
+post for more details.
+
+## Citation
+
+If you use this package in your work it would be helpful if you would
+cite it. A suggested citation is:
+
+*Patterson, R. midlines: Estimate Polygon Midlines. R package version
+0.0.0.9002. DOI: 10.17863/CAM.100113*
+
 ## Alternatives
 
 - The very comprehensive R package

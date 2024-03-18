@@ -11,7 +11,7 @@ midlines_group = function(x) {
   touches = sf::st_touches(x)
   graph = igraph::graph_from_adj_list(touches)
 
-  groups <- igraph::components(graph)$membership
+  groups = igraph::components(graph)$membership
 
   grouped = stats::aggregate(x, by = list(group_id = groups), FUN = unique)
 
