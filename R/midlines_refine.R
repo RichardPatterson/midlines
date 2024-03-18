@@ -11,7 +11,7 @@ midlines_group = function(x) {
   touches = sf::st_touches(x)
   graph = igraph::graph_from_adj_list(touches)
 
-  groups <- igraph::components(graph)$membership
+  groups = igraph::components(graph)$membership
 
   grouped = stats::aggregate(x, by = list(group_id = groups), FUN = unique)
 
@@ -24,15 +24,6 @@ midlines_group = function(x) {
   return(grouped)
 }
 
-# This seems to be okay. It returns a df rather than a tibble, but that's fine because that's what it it passed.
-# d = midlines_group(removed)
-# e = midlines::midlines_group(removed)
-# d
-# e
-# class(d)
-# class(e)
-# all.equal(d,e)
-# class(removed)
 
 
 
