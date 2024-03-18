@@ -42,14 +42,16 @@ midlines_debit = function(x, length) {
 midlines_smooth = function(x, width = 3){
 
   dat = midlines_group(x)
-  dat = dplyr::select(dat, geometry)  # stop warning about repeating attributes
-  dat = sf::st_cast(dat,"LINESTRING")
+  dat = subset(dat, select =  geometry)  # stop warning about repeating attributes
+  #dat = sf::st_cast(dat,"LINESTRING")
+  dat = sf::st_sf(geometry = sf::st_cast(sf::st_line_merge(sf::st_union(x)), "LINESTRING"))
+
 
   s = function(x){
     l = length(dat$geometry[[x]])
 
-    a = zoo::rollapply(dat$geometry[[x]][1:(l/2)], width = width, mean )
-    b = zoo::rollapply(dat$geometry[[x]][(l/2+1):l], width = width, mean )
+    a = zoo::rollmean(dat$geometry[[x]][1:(l/2)], k = width)
+    b = zoo::rollmean(dat$geometry[[x]][(l/2+1):l], k = width)
 
     sx = dat$geometry[[x]][1]
     ex = dat$geometry[[x]][(l/2)]
@@ -60,25 +62,20 @@ midlines_smooth = function(x, width = 3){
 
   }
 
-  nrow = nrow(dat)
+  smoothed = sf::st_sfc(lapply(seq_len(nrow(dat)), s))
 
-  smoothed = sf::st_as_sf(sf::st_as_sfc(lapply(1:nrow, s)))
+  smoothed = sf::st_sf(geometry =
+                          sf::st_collection_extract(
+                            lwgeom::st_split(smoothed,
+                                             sf::st_union(
+                                               sf::st_cast(smoothed, "MULTIPOINT"))), type = "LINESTRING"),
+                        crs = sf::st_crs(x))
 
-  smoothed = sf::st_as_sf(
-    sf::st_collection_extract(
-      lwgeom::st_split(smoothed$x,
-               sf::st_union(
-                 sf::st_cast(smoothed, "MULTIPOINT"))), type = "LINESTRING"))
-
-  colnames(smoothed)[colnames(smoothed) == "x"] = "geometry"
-  sf::st_geometry(smoothed) <- "geometry"
-
-  smoothed$line_id = 1:nrow(smoothed)
-
-  sf::st_crs(smoothed) = sf::st_crs(dat)
+  smoothed$line_id = seq_len(nrow(smoothed))
 
   return(smoothed)
-}
+
+  }
 
 
 
@@ -106,8 +103,9 @@ midlines_smooth = function(x, width = 3){
 midlines_dedensify = function(x, density){
 
   x = midlines_group(x)
-  x = dplyr::select(x, geometry)
-  ls = sf::st_cast(x,"LINESTRING")
+  x = subset(x, select = geometry)
+  ls = sf::st_sf(geometry = sf::st_cast(sf::st_line_merge(sf::st_union(x)), "LINESTRING"))
+
   ls$line_id = 1:nrow(ls)
 
   de_densified = sf::st_as_sf(sf::st_line_sample(ls, density = density))

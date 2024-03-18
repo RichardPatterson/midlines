@@ -168,7 +168,7 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
 
   }#for loop
 
-  removed_mid_points = dplyr::bind_rows(removed_mid_points)
+  removed_mid_points = do.call("rbind", removed_mid_points)
 
   removed_mid_points$removed_flag = factor(1)
   trimmed_mid_points$removed_flag = factor(0)
@@ -179,7 +179,7 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
                        sf::st_drop_geometry(trimmed_points),
                        FUN = unique)
 
-  return = dplyr::inner_join(x, rem_flag, by = "line_id")
+  return = merge(x, rem_flag, by = "line_id")
 
   # Remove line_id var if it wasn't present in input (x)
   if(!line_id_present){
@@ -190,7 +190,7 @@ midlines_clean = function(x, n_removed = 1, border_line = NULL){
 }
 
 
-group_id = line_id = geometry = NULL
+removed_flag = group_id = line_id = geometry = NULL
 
 
 

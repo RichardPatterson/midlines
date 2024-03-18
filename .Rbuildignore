@@ -6,3 +6,5 @@
 ^working/examples\.R$
 ^README\.Rmd$
 ^data-raw$
+^doc$
+^Meta$

@@ -4,7 +4,7 @@ output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{midlines}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  %\VignetteEncoding{UTF-8}{inputenc}
 ---
 
 ```{r, include = FALSE}
@@ -25,7 +25,7 @@ The goal of `midlines` is to estimate the midline of one or more polygons, takin
 
 ## Installation
 
-You can install the package from [GitHub](https://github.com/) with:
+You can install the current version of the package from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
@@ -167,7 +167,7 @@ The lack of lines is due to the narrowness of the channel, or more precisely, th
 plot(side1)
 plot(bbox_line_s, add = TRUE)
 
-m_s1 = midlines_draw(side1, dfMaxLength = units::set_units(8,"m"), border_line = bbox_line_s)
+m_s1 = midlines_draw(side1, dfMaxLength = set_units(8,"m"), border_line = bbox_line_s)
 #plot(ml2$geometry, add = TRUE, col = "BLUE")
 
 # using the border_line to prevent removal of lines of interest
@@ -301,3 +301,4 @@ plot(pols)
 
 * The very comprehensive R package [`cmgo`](https://github.com/AntoniusGolly/cmgo) does many of the same things as this package and much more. If your aim to to estimate the midline of a river, you should probably start with [`cmgo`](https://github.com/AntoniusGolly/cmgo)
 * [centerline](https://centerline.readthedocs.io/en/latest/) is a Python library with a similar aim
+
